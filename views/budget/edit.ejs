@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editting <%= expense.name %>
+  </title>
+  <link rel="icon" href="/images/logo.png" type="image/png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+  <%- include('../partials/_navbar.ejs') %>
+    <section class="section">
+      <div class="container" style="max-width: 600px">
+        <h1 class="title is-1 has-text-centered mb-5">Update Expense Form</h1>
+        <div class="has-text-centered mb-4">
+          <a href="/users/<%=user._id%>/budget" class="button is-link is-light is-large">Back to Budget</a>
+        </div>
+        <% if (expense.costType==='Fixed' ) { %>
+          <!-- fixed expense form -->
+          <div id="fixed-form" class="form-step box">
+            <form action="/users/<%= user._id %>/budget/<%= expense._id %>?_method=PUT" method="POST">
+              <div class="field">
+                <label class="label" for="name">Name:</label>
+                <div class="control">
+                  <input class="input name-input" type="text" name="name" id="fixed-name" maxlength="15"
+                    value="<%= expense.name %>" required />
+                </div>
+              </div>
+              <div class="field is-grouped" style="width: 100%">
+                <div class="control" style="flex: 2; min-width: 0">
+                  <label class="label has-text-centered" for="type">Expense Type:</label>
+                  <div class="select is-fullwidth">
+                    <select id="fixed-type" name="type">
+                      <option value="Credit Card" <%=expense.type==='Credit Card' ? 'selected' : '' %>>Credit Card
+                      </option>
+                      <option value="Loan" <%=expense.type==='Loan' ? 'selected' : '' %>>Loan</option>
+                      <option value="Utility" <%=expense.type==='Utility' ? 'selected' : '' %>>Utility</option>
+                      <option value="Subscription" <%=expense.type==='Subscription' ? 'selected' : '' %>>Subscription
+                      </option>
+                      <option value="Other" <%=expense.type==='Other' ? 'selected' : '' %>>Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="control" style="flex: 2; min-width: 0">
+                  <label class="label has-text-centered" for="schedule">Payment Schedule:</label>
+                  <div class="select is-fullwidth">
+                    <select name="schedule" id="fixed-schedule">
+                      <option value="Weekly" <%=expense.schedule==='Weekly' ? 'selected' : '' %>>Weekly</option>
+                      <option value="Bi-Weekly" <%=expense.schedule==='Bi-Weekly' ? 'selected' : '' %>>Bi-Weekly
+                      </option>
+                      <option value="Monthly" <%=expense.schedule==='Monthly' ? 'selected' : '' %>>Monthly</option>
+                      <option value="Bi-Monthly" <%=expense.schedule==='Bi-Monthly' ? 'selected' : '' %>>Bi-Monthly
+                      </option>
+                      <option value="Quarterly" <%=expense.schedule==='Quarterly' ? 'selected' : '' %>>Quarterly
+                      </option>
+                      <option value="Semi-Annually" <%=expense.schedule==='Semi-Annually' ? 'selected' : '' %>
+                        >Semi-Annually</option>
+                      <option value="Annually" <%=expense.schedule==='Annually' ? 'selected' : '' %>>Annually</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="control" style="flex: 1; min-width: 150px; max-width: 150px">
+                  <label class="label has-text-centered" for="cost">Cost:</label>
+                  <input class="input cost-input" style="width: 100%; min-width: 0" type="text" name="cost"
+                    id="fixed-cost" min="0"
+                    value="<%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency', currency: currentUser.currency.code }).format(expense.cost) %>"
+                    placeholder="<%= currentUser.currency.placeholder %>" required />
+                </div>
+              </div>
+              <input type="hidden" name="costType" value="Fixed" />
+              <div class="field">
+                <label class="label" for="notes">Notes:</label>
+                <div class="control">
+                  <textarea class="textarea" name="notes" id="notes"
+                    placeholder="Add any notes or details about this expense"><%= expense.notes %></textarea>
+                </div>
+              </div>
+              <div class="field is-grouped is-grouped-centered mt-4 buttons are-medium">
+                <div class="control">
+                  <button class="button is-warning" type="submit">Update</button>
+                </div>
+                <div class="control">
+                  <a class="button is-light" type="button" href="/users/<%=user._id%>/budget/<%= expense._id %>">
+                    Back
+                  </a>
+                </div>
+              </div>
+            </form>
+          </div>
+          <% } else { %>
+            <!-- Variable Expense Form -->
+            <div id="variable-form" class="form-step box">
+              <form action="/users/<%= user._id %>/budget/<%= expense._id %>?_method=PUT" method="POST">
+                <div class="field">
+                  <label class="label" for="name">Name:</label>
+                  <div class="control">
+                    <input class="input name-input" type="text" name="name" id="name" maxlength="15"
+                      value="<%= expense.name %>" required />
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="label" for="type">Expense Type:</label>
+                  <div class="control">
+                    <div class="select is-fullwidth">
+                      <select id="type" name="type">
+                        <option value="Credit Card" <%=expense.type==='Credit Card' ? 'selected' : '' %>>Credit Card
+                        </option>
+                        <option value="Loan" <%=expense.type==='Loan' ? 'selected' : '' %>>Loan</option>
+                        <option value="Utility" <%=expense.type==='Utility' ? 'selected' : '' %>>Utility</option>
+                        <option value="Subscription" <%=expense.type==='Subscription' ? 'selected' : '' %>>Subscription
+                        </option>
+                        <option value="Other" <%=expense.type==='Other' ? 'selected' : '' %>>Other</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" name="schedule" id="schedule" value="Monthly" />
+                <label for="costType" hidden>
+                  <input type="text" name="costType" value="Variable" hidden />
+                </label>
+                <label for="notes">
+                  <div class="field">
+                    <label class="label" for="notes">Notes:</label>
+                    <div class="control">
+                      <textarea class="textarea" name="notes" id="notes"
+                        placeholder="Add any notes or details about this expense"><%= expense.notes %></textarea>
+                    </div>
+                  </div>
+                </label>
+                <h3 class="subtitle is-5 mt-5 has-text-centered">
+                  Historical Payment Data
+                </h3>
+                <div class="table-container" style="overflow-x: auto;">
+                    <table id="payment-table" class="table is-bordered is-fullwidth">
+                      <thead>
+                        <tr>
+                          <th class="has-text-centered">Month/Year</th>
+                          <th class="has-text-centered">Cost</th>
+                          <th class="has-text-centered">Remove</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% expense.historical.forEach((payment, index)=> { %>
+                          <tr class="payment-row">
+                            <td class="has-text-centered align-middle" style="vertical-align: middle;">
+                              <div class="field is-grouped is-grouped-centered is-flex is-justify-content-center" style="margin-bottom: 0;">
+                                <div class="control">
+                                  <input 
+                                  class="input has-text-centered" 
+                                  type="text"
+                                  name="historical[<%= index %>][month]"
+                                  id="month[<%= index %>]"
+                                  value="<%= payment.date.toLocaleString(currentUser.currency.locale, { month: 'long', timeZone: 'UTC' }) %>"
+                                  readonly
+                                  style="width: 130px; text-align: center;" 
+                                  tabindex="-1" />
+                                </div>
+                                <div class="control">
+                                  <input 
+                                  class="input has-text-centered" 
+                                  type="text" 
+                                  name="historical[<%= index %>][year]"
+                                  id="year[<%= index %>]"
+                                  value="<%= payment.date.getUTCFullYear() %>" 
+                                  readonly
+                                  style="width: 87px; text-align: center;" 
+                                  tabindex="-1" />
+                                </div>
+                              </div>
+                            </td>
+                            <td class="has-text-centered" style="vertical-align: middle;">
+                              <input class="input cost-input has-text-centered" type="text"
+                                name="historical[<%= index %>][cost]" id="cost[<%= index %>]"
+                                value="<%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency', currency: currentUser.currency.code }).format(payment.cost) %>"
+                                min="0" placeholder="<%= currentUser.currency.placeholder %>" required readonly
+                                style="margin: 0 auto; display: block;" />
+                            </td>
+                            <td class="has-text-centered" style="vertical-align: middle;">
+                              <button id="remove[<%= index %>]" data-index="<%= index %>" type="button"
+                                class="button is-small is-danger remove-btn has-text-white has-text-weight-extrabold" onclick="removeRow(this)">
+                                <span class="icon"><i class="fa-solid fa-x fa-xl" style="color: #ffffff;"></i></span>
+                              </button>
+                            </td>
+                          </tr>
+                        <% }) %>
+                      </tbody>
+                    </table>
+                </div>
+                <div class="notification is-warning is-light has-text-centered" id="year-month-error-message" hidden>
+                  <button class="delete" type="button" onclick="this.parentNode.hidden=true"></button>
+                  Month and Year have already been used, check for errors.
+                </div>
+                <div class="has-text-centered">
+                  <button class="button is-info" id="add-row" type="button"
+                    onclick="addRow(); document.querySelector('#variable-form form').reportValidity();">Add Row</button>
+                </div>
+                <div class="field is-grouped is-grouped-centered mt-5 buttons are-large">
+                  <div class="control">
+                    <button class="button is-warning" type="submit">Update</button>
+                  </div>
+                  <div class="control">
+                    <a class="button is-light" type="button" href="/users/<%=user._id%>/budget/<%= expense._id %>">
+                      Back
+                    </a>
+                  </div>
+                </div>
+            </div>
+            </form>
+      </div>
+      <% } %>
+        </div>
+    </section>
+    <script>
+      window.currency = JSON.parse(
+        `<%- JSON.stringify(currentUser.currency) %>`
+      );
+      window.expense = JSON.parse(
+        `<%- JSON.stringify(expense) %>`
+      );
+    </script>
+    <script defer src="/js/clientUtils.js"></script>
+</body>
+
+</html>

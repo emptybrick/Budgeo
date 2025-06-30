@@ -1,25 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign Up</title>
-</head>
-<body>
-  <h1>Create a new account!</h1>
-  <form action="/auth/sign-up" method="POST">
-    <label for="username">Username:</label>
-    <input type="text" name="username" id="username" required />
-    <label for="password">Password:</label>
-    <input type="password" name="password" id="password" required />
-    <label for="confirmPassword">Confirm Password:</label>
-    <input 
-      type="password"
-      name="confirmPassword"
-      id="confirmPassword"
-      required 
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up</title>
+    <link rel="icon" href="/images/logo.png" type="image/png" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
     />
-    <button type="submit">Sign up</button>
-  </form>
-</body>
+  </head>
+  <body>
+    <%- include('../partials/_navbar.ejs') %>
+    <section class="section" style="min-height: 100vh">
+      <div class="container">
+        <h1 class="title is-3 has-text-centered">Create a new account!</h1>
+        <form
+          action="/auth/sign-up"
+          method="POST"
+          class="box"
+          style="max-width: 400px; margin: 0 auto"
+        >
+          <div class="field">
+            <label class="label" for="username">Username:</label>
+            <div class="control">
+              <input
+                class="input"
+                type="text"
+                name="username"
+                id="username"
+                required
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="currency">Currency:</label>
+            <div class="control">
+              <div class="select is-fullwidth">
+                <select name="currency" id="currency" required>
+                  <option value="">Select a Currency</option>
+                  <% currencies.forEach(element => { %>
+                  <option value="<%= JSON.stringify(element) %>">
+                    <%= element.name %>
+                  </option>
+                  <% }); %>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="password">Password:</label>
+            <div class="control">
+              <input
+                class="input"
+                type="password"
+                name="password"
+                id="password"
+                required
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="confirmPassword">Confirm Password:</label>
+            <div class="control">
+              <input
+                class="input"
+                type="password"
+                name="confirmPassword"
+                id="confirmPassword"
+                required
+              />
+            </div>
+          </div>
+          <div class="field is-grouped is-grouped-centered">
+            <div class="control">
+              <button class="button is-primary" type="submit">Sign up</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </body>
 </html>

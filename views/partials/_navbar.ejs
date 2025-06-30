@@ -1,0 +1,74 @@
+<!-- views/partials/_navbar.ejs -->
+
+<nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+  <div class="navbar-menu is-active">
+    <div class="navbar-start">
+      <a href="/"
+        ><img
+          class="navbar-item"
+          style="max-height: 52px"
+          src="/images/logo-with-text-white.png"
+      /></a>
+    </div>
+    <div class="navbar-end"></div>
+    <% if(user) { %>
+      <a
+        class="navbar-item has-text-weight-bold has-text-white"
+        href="/users/<%= user._id %>/budget/charts"
+        >Charts</a>
+      <a
+        class="navbar-item has-text-weight-bold has-text-white"
+        href="/users/<%= user._id %>/budget"
+        >Expenses</a
+      >
+      <a
+        class="navbar-item has-text-weight-bold has-text-white"
+        href="/auth/sign-out"
+        >Sign Out</a
+      >
+      <% } else { %> <% if (req.path === '/sign-up' || req.path === '/') { %>
+      <a
+        class="navbar-item has-text-weight-bold has-text-white"
+        href="/auth/sign-in"
+        >Sign In</a
+      >
+      <% } else { %>
+      <a
+        class="navbar-item has-text-weight-bold has-text-white"
+        href="/auth/sign-up"
+        >Sign Up</a
+      >
+      <% } %> <% } %>
+    </div>
+  </div>
+  <a class="navbar-burger has-text-weight-bold has-text-white" role="button" aria-label="menu" aria-expanded="false">
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+    <span aria-hidden="true"></span>
+  </a>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+// Get all "navbar-burger" elements
+const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+// Add a click event on each of them
+$navbarBurgers.forEach( el => {
+  el.addEventListener('click', () => {
+
+    // Get the target from the "data-target" attribute
+    const target = el.dataset.target;
+    const $target = document.getElementById(target);
+
+    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+    el.classList.toggle('is-active');
+    $target.classList.toggle('is-active');
+
+  });
+});
+
+});
+</script>

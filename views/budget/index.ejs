@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= user.username.endsWith('s') ? user.username + "' Budget" : user.username + "'s Budget" %>
+  </title>
+  <link rel="icon" href="/images/logo.png" type="image/png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
+</head>
+
+<body>
+  <%- include('../partials/_navbar.ejs') %>
+    <section class="section">
+      <div class="container">
+        <h1 class="title is-1 has-text-centered">Expenses</h1>
+        <div class="has-text-centered mb-4">
+          <a href="/users/<%=user._id%>/budget/new" class="button is-link is-light is-large">Add a new expense</a>
+        </div>
+        <div class="box" style="max-width: 900px; margin: 0 auto">
+          <div class="field has-addons is-justify-content-right mb-5">
+            <div class="control">
+              <div class="select">
+                <select id="type-filter">
+                  <option value="all">All</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Subscription">Subscription</option>
+                  <option value="Utility">Utility</option>
+                  <option value="Loan">Loan</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="columns is-multiline" id="expenses-list">
+            <% expenses.forEach((expense)=>{ %>
+              <div class="column is-one-third-desktop is-half-tablet is-full-mobile expense-item"
+                data-type="<%= expense.type %>">
+                <div class="card mb-4">
+                  <div class="card-content">
+                    <p class="title is-5 has-text-centered mb-3">
+                      <%= expense.name %>
+                    </p>
+                    <p><strong>Type:</strong>
+                      <%= expense.type %>
+                    </p>
+                    <p class="mt-2">
+                      <strong>Schedule:</strong>
+                      <span>
+                        <%= expense.costType==="Variable" ? expense.costType : expense.schedule %>
+                      </span>
+                    </p>
+                    <p class="mt-2">
+                      <strong>Cost:</strong>
+                      <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
+                        currentUser.currency.code }).format(expense.cost) %>
+                    </p>
+                    <div class="field is-grouped is-grouped-centered mt-4">
+                      <p class="control">
+                        <a class="button is-light is-info" href="/users/<%=user._id%>/budget/<%= expense._id %>">View
+                          Expense</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <% }) %>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script>
+      // Expense filter logic
+      document.addEventListener("DOMContentLoaded", function () {
+        const expensesFilter = document.getElementById("type-filter");
+        const expenseCard = document.querySelectorAll(".expense-item");
+        expensesFilter.addEventListener("change", function () {
+          const expenseType = expensesFilter.value;
+          expenseCard.forEach((card) => {
+            if (expenseType === "all" || card.dataset.type === expenseType) {
+              card.style.display = "";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        });
+      });
+    </script>
+</body>
+
+</html>

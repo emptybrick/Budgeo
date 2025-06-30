@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= expense.name %> Details
+  </title>
+  <link rel="icon" href="/images/logo.png" type="image/png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
+</head>
+
+<body>
+  <%- include('../partials/_navbar.ejs') %>
+    <section class="section">
+      <div class="container" style="max-width: 600px">
+        <h1 class="title is-1 has-text-centered">
+          <%= expense.name %>
+        </h1>
+        <div class="has-text-centered mb-4">
+          <a href="/users/<%=user._id%>/budget" class="button is-link is-light is-large">Back to Budget</a>
+        </div>
+        <div class="box">
+          <p class="ml-2">
+            <strong>Type:</strong>
+            <%= expense.type %>
+          </p>
+          <p class="ml-2 mt-2">
+            <strong>Schedule:</strong>
+            <span>
+              <%= expense.costType==="Variable" ? expense.costType : expense.schedule %>
+            </span>
+          </p>
+          <p class="ml-2 mt-2">
+            <strong>
+              <%= expense.costType==="Variable" ? "Estimated Monthly Cost" : "Cost" %>:
+            </strong>
+            <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency: currentUser.currency.code
+              }).format(expense.cost) %>
+          </p>
+          <% if (expense.costType==="Variable" ) { %>
+            <p class="ml-2 mt-2">
+              <strong>Estimation Confidence:</strong>
+              <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
+                currentUser.currency.code }).format(expense.costLow) %> to
+                <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
+                  currentUser.currency.code }).format(expense.costHigh) %>
+            </p>
+            <p class="ml-2 mt-2">
+              <strong>Highest Payment:</strong>
+              <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
+                currentUser.currency.code }).format(expense.historical.reduce((max, entry)=> entry.cost > max.cost ?
+                entry : max, expense.historical[0]).cost) %>
+            </p>
+            <p class="ml-2 mt-2">
+              <strong>Lowest Payment:</strong>
+              <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
+                currentUser.currency.code }).format(expense.historical.reduce((min, entry)=> entry.cost < min.cost ?
+                  entry : min, expense.historical[0]).cost) %>
+            </p>
+            <% } %>
+              <% if (expense.notes && expense.notes.length> 0) { %>
+                <h3 class="subtitle is-5 mt-4 has-text-centered">
+                  Notes
+                </h3>
+                <div class="notification mt-4">
+                  <span>
+                    <%= expense.notes %>
+                  </span>
+                </div>
+                <% } %>
+                  <div class="field is-grouped is-grouped-centered mt-4 buttons are-medium">
+                    <form action="/users/<%=user._id%>/budget/<%= expense._id %>?_method=DELETE" method="POST">
+                      <button class="button is-danger mr-4 is-light" type="submit" style="width: 80px">
+                        Delete
+                      </button>
+                    </form>
+                    <p class="control">
+                      <a class="button is-warning is-light" style="width: 80px"
+                        href="/users/<%=user._id%>/budget/<%= expense._id %>/edit">Edit</a>
+                    </p>
+                  </div>
+                  <% if (expense.historical.length> 0) { %>
+                    <h3 class="subtitle is-5 mt-5 has-text-centered">
+                      Historical Payment Data
+                    </h3>
+                    <div class="table-container mt-2" style="max-width: 400px; margin-left: auto; margin-right: auto">
+                      <table class="table is-fullwidth is-striped is-hoverable has-text-centered">
+                        <thead>
+                          <tr>
+                            <th class="has-text-centered">Date</th>
+                            <th class="has-text-centered">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% expense.historical.forEach((payment)=> { %>
+                            <tr>
+                              <td>
+                                <%= payment.date.toLocaleDateString(currentUser.currency.locale, { year: 'numeric' ,
+                                  month: 'long' , timeZone: 'UTC' , }) %>
+                              </td>
+                              <td>
+                                <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
+                                  currentUser.currency.code }).format(payment.cost) %>
+                              </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                      </table>
+                    </div>
+                    <% } %>
+        </div>
+      </div>
+    </section>
+</body>
+
+</html>
