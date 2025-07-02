@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/user.js');
 const { calculateVariableCost, monthFromLocale } = require('../public/js/serverUtils.js');
 const parseCurrency = require('parsecurrency');
+const { parse } = require('dotenv');
 
 // parseCurrency is used to parse currency strings into numbers
 // Example usage:
@@ -50,7 +51,6 @@ router.post('/', async (req, res) => {
         if (!req.body.cost) {
             req.body.cost = '0';
         }
-
         const expenseData = {
             name: req.body.name,
             type: req.body.type,
@@ -60,14 +60,14 @@ router.post('/', async (req, res) => {
             notes: req.body.notes || '', // Ensure notes is a string, default to empty if not provided
             historical: req.body.historical,
         }
-
+        
         // maps historical data to a date and cost format
         // and calculates the variable cost if historical data is provided
         // and adds it to the expenseData object for later use
         if (expenseData.historical && expenseData.historical.length > 0) {
             expenseData.historical.forEach(entry => {
                 // checking if server recieved month as a locale string, if so converts it to number
-                if (entry.month.length > 2) {
+                if (!Number.isInteger(entry.month)) {
                     entry.month = monthFromLocale(entry.month, currentUser.currency.locale) + 1
                 }
             });
@@ -166,7 +166,7 @@ router.put('/:expenseId', async (req, res) => {
         if (req.body.historical && req.body.historical.length > 0) {
             req.body.historical.forEach(entry => {
                 // checking if server recieved month as a locale string, if so converts it to number
-                if (entry.month.length > 2) {
+                if (!Number.isInteger(entry.month)) {
                     entry.month = monthFromLocale(entry.month, currentUser.currency.locale) + 1
                 }
             });

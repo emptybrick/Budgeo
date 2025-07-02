@@ -196,14 +196,14 @@ function removeRow(button) {
     let yearMonth = '';
     if (rowIndex > 1) {
         let month = monthSelected.value
-        if (month && month.length > 2) {
+        if (!Number.isInteger(month)) {
             month = monthFromLocale(month, currency.locale) + 1
         }
         if (month && yearSelected.value) {
             yearMonth = `${yearSelected.value}-${month}`
         }
         const comboIdx = combinations.indexOf(yearMonth)
-        if (comboIdx && combinations.includes(yearMonth) && monthSelected.readOnly) {
+        if (comboIdx >= 0 && combinations.includes(yearMonth) && monthSelected.readOnly) {
             combinations.splice(comboIdx, 1)
         }
         button.parentNode.parentNode.remove();
@@ -236,9 +236,10 @@ document.addEventListener("input", (e) => {
         e.target.value = e.target.value.replace(/[^0-9]/g, "");
         let value = e.target.value;
 
-        // allows backspace
-        if (e.inputType === "deleteContentBackward") {
+        // allows backspace when symbol position is on right of input or back
+        if (e.inputType === "deleteContentBackward" && currency.symbolPosition === 'back') {
             value = value.slice(0, -1)
+            console.log(value)
         }
 
         // If input is empty or not a number, show placeholder format
