@@ -6,15 +6,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>New Expense Form</title>
   <link rel="icon" href="/images/logo.png" type="image/png" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     .form-step {
       display: none;
     }
-
     .form-step.active {
       display: block;
+    }
+    .input:active,
+    .input:focus,
+    .is-active.input,
+    .is-active.textarea,
+    .is-focused.input,
+    .is-focused.textarea,
+    .select select.is-active,
+    .select select.is-focused,
+    .select select:active,
+    .select select:focus,
+    .textarea:active,
+    .textarea:focus {
+      border-color: #34495e !important;
+      box-shadow: 0 0 0 .125em #34495e33 !important;
+    }
+    .select:not(.is-multiple):not(.is-loading)::after {
+      border-color: #238cd1;
     }
   </style>
 </head>
@@ -23,12 +40,10 @@
   <%- include('../partials/_navbar.ejs') %>
     <section class="section">
       <div class="container" style="max-width: 600px">
-        <h1 class="title is-1 has-text-centered mb-5">New Expense Form</h1>
-        <div class="has-text-centered mb-4">
-          <a href="/users/<%=user._id%>/budget" class="button is-link is-light is-large">Back to Budget</a>
-        </div>
+        <h1 class="title is-1 has-text-centered">New Expense Form</h1>
+        <%- include('../partials/_links.ejs') %>
         <!-- Initial Form -->
-        <div id="initial-form" class="form-step active box">
+        <div id="initial-form" class="form-step active box" style="margin-top: 1.25rem;">
           <form id="initial-form-submit">
             <div class="field">
               <label class="label" for="costType">Select Payment Type:</label>
@@ -41,7 +56,7 @@
                 </div>
               </div>
             </div>
-            <div class="field is-grouped is-grouped-centered mt-4">
+            <div class="field is-grouped is-grouped-centered" style="margin-top: 1rem;">
               <div class="control">
                 <button class="button is-primary is-medium" type="submit">Next</button>
               </div>
@@ -50,7 +65,7 @@
         </div>
 
         <!-- Fixed Cost Form -->
-        <div id="fixed-form" class="form-step box">
+        <div id="fixed-form" class="form-step box" style="margin-top: 1.25rem;">
           <form action="/users/<%= user._id %>/budget" method="POST">
             <div class="field">
               <label class="label" for="name">Name:</label>
@@ -101,14 +116,14 @@
                 </div>
               </div>
             </label>
-            <div class="field is-grouped is-grouped-centered mt-4 buttons are-medium">
+            <div class="field is-grouped is-grouped-centered buttons are-medium" style="margin-top: 1rem;">
               <div class="control">
                 <button class="button is-primary" type="submit">
                   Add Expense
                 </button>
               </div>
               <div class="control">
-                <button class="button is-light" type="button" onclick="goBack(); form.reset()">
+                <button class="button" type="button" style="border: .15rem solid #34495e;" onclick="goBack(); form.reset()">
                   Back
                 </button>
               </div>
@@ -117,7 +132,7 @@
         </div>
 
         <!-- Variable Cost Form -->
-        <div id="variable-form" class="form-step box">
+        <div id="variable-form" class="form-step box" style="margin-top: 1.25rem;">
           <form action="/users/<%= user._id %>/budget" method="POST">
             <div class="field">
               <label class="label" for="name">Name:</label>
@@ -152,10 +167,10 @@
                 </div>
               </div>
             </label>
-            <h3 class="subtitle is-5 mt-5 has-text-centered">
+            <h3 class="title is-5 has-text-centered" style="margin-top: 1.25rem;">
               Historical Payment Data
             </h3>
-            <table id="payment-table" class="table is-bordered is-striped is-hoverable">
+            <table id="payment-table" class="table is-bordered is-striped is-hoverable is-fullwidth">
               <thead>
                 <tr>
                   <th class="has-text-centered">Month/Year</th>
@@ -206,31 +221,31 @@
                   </td>
                   <td class="has-text-centered align-middle" style="vertical-align: middle">
                     <button id="remove[0]" data-index="0" type="button"
-                      class="button is-small is-danger remove-btn has-text-white has-text-weight-extrabold" onclick="removeRow(this)">
+                      class="button is-small is-primary remove-btn has-text-white has-text-weight-extrabold" onclick="removeRow(this)">
                       <span class="icon"><i class="fa-solid fa-x fa-xl" style="color: #ffffff;"></i></span>
                     </button>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <div class="notification is-warning is-light has-text-centered" id="year-month-error-message" hidden>
+            <div class="notification is-primary has-text-centered" id="year-month-error-message" hidden>
               <button class="delete" type="button" onclick="this.parentNode.hidden=true"></button>
               Month and Year have already been used, check for errors.
             </div>
             <div class="has-text-centered">
-              <button class="button is-info" id="add-row" type="button"
+              <button class="button is-primary is-inverted" style="border: .15rem solid #34495e;" id="add-row" type="button"
                 onclick="addRow(); document.querySelector('#variable-form form').reportValidity();">
                 Add Row
               </button>
             </div>
-            <div class="field is-grouped is-grouped-centered mt-5 buttons are-medium">
+            <div class="field is-grouped is-grouped-centered buttons are-medium" style="margin-top: 1.5rem;">
               <div class="control">
                 <button class="button is-primary" type="submit">
                   Add Expense
                 </button>
               </div>
               <div class="control">
-                <button class="button is-light" type="button" onclick="goBack()">
+                <button class="button is-primary is-inverted" type="button" style="border: .15rem solid #34495e;" onclick="goBack()">
                   Back
                 </button>
               </div>

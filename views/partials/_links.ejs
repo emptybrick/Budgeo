@@ -1,0 +1,10 @@
+<% if (path==='/' ) { %>
+    <div class="field is-grouped is-grouped-centered buttons are-large" style="gap: 1rem;">
+        <a href="/users/<%=user._id%>/budget/new" class="button is-primary is-outlined">Add A New Expense</a>
+        <a href="/users/<%=user._id%>/budget/data" class="button is-primary is-outlined">View Financial Data</a>
+    </div>
+    <% } else { %>
+        <div class="field has-text-centered">
+            <a href="/users/<%=user._id%>/budget" class="button is-primary is-outlined is-large">Back to Expenses</a>
+        </div>
+        <% } %>

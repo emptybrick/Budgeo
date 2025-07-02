@@ -44,27 +44,30 @@ function reindexRows() {
             if (input.id && input.id.includes("year")) input.id = `year[${idx}]`;
             if (input.id && input.id.includes("cost")) input.id = `cost[${idx}]`;
         });
-        const removeButton = row.querySelector('button.is-danger');
+        const removeButton = row.querySelector('button.remove-btn');
         if (removeButton) {
             removeButton.id = `remove[${idx}]`
             removeButton.dataset.index = idx;
         }
+        row.querySelector(".month-year-group").parentElement.id = `month-year[${idx}]`
         idx++;
     });
     rowIndex = idx;
+    console.log('rowIndex after reindex: ', rowIndex)
 }
 
 function setRowReadOnly(index, month, year) {
-    const lastRow = document.getElementById(`month-year[${index}]`)
-    const childToRemove = lastRow.querySelector('.month-year-group')
-    lastRow.removeChild(childToRemove)
-    const childToAdd = document.createElement('div')
-    childToAdd.classList.add("field", "is-grouped", "month-year-group")
-    formattedMonth = new Date(0, (month - 1)).toLocaleString(currency.locale, {
-        month: 'long',
-        timeZone: 'UTC'
-    })
-    const rowReadOnly = `
+    return new Promise((resolve) => {
+        const lastRow = document.getElementById(`month-year[${index}]`)
+        const childToRemove = lastRow.querySelector('.month-year-group')
+        lastRow.removeChild(childToRemove)
+        const childToAdd = document.createElement('div')
+        childToAdd.classList.add("field", "is-grouped", "month-year-group")
+        formattedMonth = new Date(0, (month - 1)).toLocaleString(currency.locale, {
+            month: 'long',
+            timeZone: 'UTC'
+        })
+        const rowReadOnly = `
     <div class="field is-grouped is-grouped-centered is-flex is-justify-content-center" style="margin-bottom: 0;">
         <div class="control">
             <input
@@ -89,92 +92,101 @@ function setRowReadOnly(index, month, year) {
                 tabindex="-1" />
         </div>
     </div>`
-
-    childToAdd.innerHTML = rowReadOnly
-    console.log(childToAdd)
-    lastRow.appendChild(childToAdd)
+        childToAdd.innerHTML = rowReadOnly
+        lastRow.appendChild(childToAdd)
+        resolve()
+    })
 }
 
-function addRow() {
+async function addRow() {
     const tbody = document.querySelector('tbody')
-    const rowCount = tbody.rows.length - 1
+    let currentRowIndex = tbody.rows.length - 1
 
-    const monthSelected = document.getElementById(`month[${rowCount}]`)
-    const yearSelected = document.getElementById(`year[${rowCount}]`)
-    const costSelected = document.getElementById(`cost[${rowCount}]`)
+    const monthSelected = document.getElementById(`month[${currentRowIndex}]`)
+    const yearSelected = document.getElementById(`year[${currentRowIndex}]`)
+    const costSelected = document.getElementById(`cost[${currentRowIndex}]`)
     const errorMessage = document.querySelector('#year-month-error-message');
 
     let yearMonth = ''
-
+    console.log('current row index: ', currentRowIndex)
     if (costSelected.readOnly) {
-        return addRowData()
+        console.log('last row readonly, adding new row')
+        await addRowData()
+        return
     }
 
     if (monthSelected.value && yearSelected.value && costSelected.value) {
-        errorMessage.hidden = true;
         yearMonth = `${yearSelected.value}-${monthSelected.value}`
+        console.log('month year and cost selected, yearMonth: ', yearMonth)
         if (combinations.includes(yearMonth)) {
-            return errorMessage.hidden = false;
+            console.log('combo already selected, please change')
+            errorMessage.hidden = false;
+            return
+        } else {
+            errorMessage.hidden = true;
+            combinations.push(yearMonth)
+            console.log(combinations)
+            await addRowData();
+            await setRowReadOnly(currentRowIndex, monthSelected.value, yearSelected.value)
+            monthSelected.readOnly = true;
+            yearSelected.readOnly = true;
+            costSelected.readOnly = true;
+            updatePlaceholders(currency);
         }
-        combinations.push(yearMonth)
-
-        setRowReadOnly(rowCount, monthSelected.value, yearSelected.value)
-        monthSelected.readOnly = true;
-        yearSelected.readOnly = true;
-        costSelected.readOnly = true;
-
-        addRowData();
-        updatePlaceholders(currency);
     }
 }
 
 function addRowData() {
-    const table = document.getElementById("payment-table");
-    const row = table.insertRow();
-    const currentYear = new Date().getUTCFullYear();
-    let yearOptions = '<option value="" disabled selected>Year</option>';
-    for (let year = currentYear; year >= currentYear - 4; year--) {
-        yearOptions += `<option value="${year}">${year}</option>`;
-    }
-    let monthOptions = '<option value="" disabled selected>Month</option>';
-    for (let i = 0; i < 12; i++) {
-        const month = (new Date(0, i)).toLocaleString(currency.locale, { month: 'long', timeZone: 'UTC' })
-        monthOptions += `<option value="${i + 1}">${month}</option>`
-    }
-    row.innerHTML = `
+    return new Promise((resolve) => {
+        const table = document.getElementById("payment-table");
+        const row = table.insertRow();
+        const currentYear = new Date().getUTCFullYear();
+        let yearOptions = '<option value="" disabled selected>Year</option>';
+        for (let year = currentYear; year >= currentYear - 4; year--) {
+            yearOptions += `<option value="${year}">${year}</option>`;
+        }
+        let monthOptions = '<option value="" disabled selected>Month</option>';
+        for (let i = 0; i < 12; i++) {
+            const month = (new Date(0, i)).toLocaleString(currency.locale, { month: 'long', timeZone: 'UTC' })
+            monthOptions += `<option value="${i + 1}">${month}</option>`
+        }
+        row.innerHTML = `
     <td>
-    <div id="month-year[${rowIndex}]">
-        <div class="field is-grouped month-year-group">
-            <div class="control">
-                <div class="select">
-                      <select class="month-input has-text-centered" name="historical[${rowIndex}][month]" id="month[${rowIndex}]" required>
+        <div id="month-year[${rowIndex}]">
+            <div class="field is-grouped month-year-group">
+                <div class="control">
+                    <div class="select">
+                      <select class="month-input has-text-centered" name="historical[${rowIndex}][month]" id="month[${rowIndex}]" style="width: 130px" required>
                         ${monthOptions}
                       </select>
+                    </div>
                 </div>
-            </div>
-                  <div class="control">
+                <div class="control">
                     <div class="select">
                       <select class="year-input has-text-centered" name="historical[${rowIndex}][year]" id="year[${rowIndex}]" required>
                         ${yearOptions}
                       </select>
                     </div>
-                  </div>
-        </div>
+                </div>
+            </div>
         </div>
     </td>
     <td><input type="text"
         class="input cost-input has-text-centered"
         id="cost[${rowIndex}]" 
-        name="historical[${rowIndex}][cost]" min="0" required
-    ></td>
+        name="historical[${rowIndex}][cost]" min="0" required>
+    </td>
     <td class="has-text-centered align-middle" style="vertical-align: middle">
         <button id="remove[${rowIndex}" data-index="${rowIndex}" type="button"
-        class="button is-small is-danger remove-btn has-text-white has-text-weight-extrabold" onclick="removeRow(this)">
+        class="button is-small is-primary remove-btn has-text-white has-text-weight-extrabold" onclick="removeRow(this)">
                 <span class="icon"><i class="fa-solid fa-x fa-xl" style="color: #ffffff;"></i></span>
         </button>
     </td>`;
-    reindexRows();
-    addErrorMessageListeners(row);
+        reindexRows();
+        addErrorMessageListeners(row);
+        console.log(rowIndex)
+        resolve()
+    })
 }
 
 // need to reset rowIndexes function
@@ -182,21 +194,21 @@ function removeRow(button) {
     const monthSelected = document.getElementById(`month[${button.dataset.index}]`);
     const yearSelected = document.getElementById(`year[${button.dataset.index}]`);
     let yearMonth = '';
-        if (rowIndex >= 1) {
-            let month = monthSelected.value
-            if (month && month.length > 2) {
-                month = monthFromLocale(month, currency.locale) + 1
-            }
-            if (month && yearSelected.value) {
-                yearMonth = `${yearSelected.value}-${month}`
-            }
-            const comboIdx = combinations.indexOf(yearMonth)
-            if (comboIdx && combinations.includes(yearMonth)) {
-                combinations.splice(comboIdx, 1)
-            }
-            button.parentNode.parentNode.remove();
+    if (rowIndex > 1) {
+        let month = monthSelected.value
+        if (month && month.length > 2) {
+            month = monthFromLocale(month, currency.locale) + 1
         }
+        if (month && yearSelected.value) {
+            yearMonth = `${yearSelected.value}-${month}`
+        }
+        const comboIdx = combinations.indexOf(yearMonth)
+        if (comboIdx && combinations.includes(yearMonth) && monthSelected.readOnly) {
+            combinations.splice(comboIdx, 1)
+        }
+        button.parentNode.parentNode.remove();
         reindexRows();
+    }
 }
 
 function goBack() {
@@ -343,6 +355,184 @@ function addErrorMessageListeners(row) {
         }
     })
 }
+
+function changeCost(payment, schedule, newSchedule) {
+    switch (schedule) {
+        case 'Weekly':
+            payment = payment * 52
+            break;
+        case 'Bi-Weekly':
+            payment = payment * 26
+            break;
+        case 'Monthly':
+            payment = payment * 12
+            break;
+        case 'Bi-Monthly':
+            payment = payment * 6
+            break;
+        case 'Quarterly':
+            payment = payment * 4
+            break;
+        case 'Semi-Annually':
+            payment = payment * 2
+            break;
+        case 'Annually':
+            break;
+    }
+    switch (newSchedule) {
+        case 'Weekly':
+            payment = (payment / 52).toFixed(2)
+            break;
+        case 'Monthly':
+            payment = (payment / 12).toFixed(2)
+            break;
+        case 'Quarterly':
+            payment = (payment / 4).toFixed(2)
+            break;
+        case 'Annually':
+            break;
+    }
+    return payment
+}
+
+function changeSchedule(type) {
+    const totalCosts = document.querySelector('#total-cost');
+    const estimatedCosts = document.querySelector('#estimate-cost');
+    if (!totalCosts || !estimatedCosts) {
+        return;
+    }
+    const newExpense = JSON.parse(JSON.stringify(expense));
+    let message = ''
+    let confidenceMessage = ''
+    newExpense.forEach(expense => {
+        switch (type) {
+            case 'Weekly':
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost
+                    expense.costLow = expense.cost - expense.costLow
+                    expense.costHigh = Number(changeCost(expense.costHigh, 'Monthly', 'Weekly'))
+                    expense.costLow = Number(changeCost(expense.costLow, 'Monthly', 'Weekly'))
+                }
+                expense.cost = Number(changeCost(expense.cost, expense.schedule, 'Weekly'))
+                break;
+            case 'Monthly':
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost
+                    expense.costLow = expense.cost - expense.costLow
+                    expense.costHigh = Number(changeCost(expense.costHigh, 'Monthly', 'Monthly'))
+                    expense.costLow = Number(changeCost(expense.costLow, 'Monthly', 'Monthly'))
+                }
+                expense.cost = Number(changeCost(expense.cost, expense.schedule, 'Monthly'))
+                break;
+            case 'Quarterly':
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost
+                    expense.costLow = expense.cost - expense.costLow
+                    expense.costHigh = Number(changeCost(expense.costHigh, 'Monthly', 'Quarterly'))
+                    expense.costLow = Number(changeCost(expense.costLow, 'Monthly', 'Quarterly'))
+                }
+                expense.cost = Number(changeCost(expense.cost, expense.schedule, 'Quarterly'))
+                break;
+            case 'Annually':
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost
+                    expense.costLow = expense.cost - expense.costLow
+                    expense.costHigh = Number(changeCost(expense.costHigh, 'Monthly', 'Annually'))
+                    expense.costLow = Number(changeCost(expense.costLow, 'Monthly', 'Annually'))
+                }
+                expense.cost = Number(changeCost(expense.cost, expense.schedule, 'Annually'))
+                break;
+        }
+    })
+    const newTotal = newExpense.reduce((sum, expense) => sum + expense.cost, 0)
+    const newTotalHigh = newExpense.reduce((sum, expense) => sum + (expense.costHigh > 0 ? expense.costHigh : 0), 0) + newTotal
+    const newTotalLow = newTotal - newExpense.reduce((sum, expense) => sum + (expense.costLow > 0 ? expense.costLow : 0), 0)
+    const formattedTotal = Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(newTotal)
+    const formattedHigh = Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(newTotalHigh)
+    const formattedLow = Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(newTotalLow)
+    switch (type) {
+        case 'Weekly':
+            message = `<span class="has-text-weight-bold">Weekly Estimate: </span> ${formattedTotal}`
+            break;
+        case 'Monthly':
+            message = `<span class="has-text-weight-bold">Monthly Estimate: </span> ${formattedTotal}`
+            break;
+        case 'Quarterly':
+            message = `<span class="has-text-weight-bold">Quarterly Estimate: </span> ${formattedTotal}`
+            break;
+        case 'Annually':
+            message = `<span class="has-text-weight-bold">Annual Estimate: </span> ${formattedTotal}`
+            break;
+    }
+    confidenceMessage = `<span class="has-text-weight-bold">Confidence Estimate: </span> ${formattedLow} to ${formattedHigh}`
+    totalCosts.innerHTML = message;
+    estimatedCosts.innerHTML = confidenceMessage;
+}
+
+async function pieChart() {
+    const chartElement = document.getElementById('pie-chart')
+    if (!chartElement) {
+        return;
+    }
+    const newExpenses = JSON.parse(JSON.stringify(expense));
+    newExpenses.forEach(expense => {
+        expense.cost = Number(changeCost(expense.cost, expense.schedule, 'Monthly'))
+    })
+
+    const creditCards = newExpenses.filter(expense => expense.type === 'Credit Card');
+    const loans = newExpenses.filter(expense => expense.type === 'Loan');
+    const utilities = newExpenses.filter(expense => expense.type === 'Utility');
+    const subscriptions = newExpenses.filter(expense => expense.type === 'Subscription');
+    const others = newExpenses.filter(expense => expense.type === 'Other');
+
+    const creditCardsTotal = creditCards.reduce((sum, expense) => sum + expense.cost, 0)
+    const loansTotal = loans.reduce((sum, expense) => sum + expense.cost, 0)
+    const utilitiesTotal = utilities.reduce((sum, expense) => sum + expense.cost, 0)
+    const subscriptionsTotal = subscriptions.reduce((sum, expense) => sum + expense.cost, 0)
+    const othersTotal = others.reduce((sum, expense) => sum + expense.cost, 0)
+
+    const pieData = [
+        { label: 'Credit Cards', value: creditCardsTotal, color: '#3D5A77' },
+        { label: 'Loans', value: loansTotal, color: '#88A1BA' },
+        { label: 'Utilities', value: utilitiesTotal, color: '#7F8E9D' },
+        { label: 'Subscriptions', value: subscriptionsTotal, color: '#23486E' },
+        { label: 'Other', value: othersTotal, color: '#436E99' }
+    ];
+
+    new Chart(
+        chartElement,
+        {
+            type: 'doughnut',
+            data: {
+                labels: pieData.map(piece => piece.label),
+                datasets: [
+                    {
+                        label: 'Categories',
+                        data: pieData.map(piece => piece.value),
+                        backgroundColor: pieData.map(piece => piece.color),
+                        hoverOffset: 4,
+                    }
+                ],
+            },
+            options: {
+                locale: currency.locale,
+                cutout: 55,
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                size: 18
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+}
+
 // Set initial placeholders for all cost input fields
 updatePlaceholders(currency);
 updateErrorMessages();
+changeSchedule('Monthly');
+pieChart();

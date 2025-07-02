@@ -8,7 +8,27 @@
     <%= user.username.endsWith('s') ? user.username + "' Budget" : user.username + "'s Budget" %>
   </title>
   <link rel="icon" href="/images/logo.png" type="image/png" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
+  <style>
+    .input:active,
+    .input:focus,
+    .is-active.input,
+    .is-active.textarea,
+    .is-focused.input,
+    .is-focused.textarea,
+    .select select.is-active,
+    .select select.is-focused,
+    .select select:active,
+    .select select:focus,
+    .textarea:active,
+    .textarea:focus {
+      border-color: #34495e !important;
+      box-shadow: 0 0 0 .125em #34495e33 !important;
+    }
+    .select:not(.is-multiple):not(.is-loading)::after {
+      border-color: #238cd1;
+    }
+  </style>
 </head>
 
 <body>
@@ -16,59 +36,59 @@
     <section class="section">
       <div class="container">
         <h1 class="title is-1 has-text-centered">Expenses</h1>
-        <div class="has-text-centered mb-4">
-          <a href="/users/<%=user._id%>/budget/new" class="button is-link is-light is-large">Add a new expense</a>
-        </div>
-        <div class="box" style="max-width: 900px; margin: 0 auto">
-          <div class="field has-addons is-justify-content-right mb-5">
-            <div class="control">
-              <div class="select">
-                <select id="type-filter">
-                  <option value="all">All</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Subscription">Subscription</option>
-                  <option value="Utility">Utility</option>
-                  <option value="Loan">Loan</option>
-                  <option value="Other">Other</option>
-                </select>
+        <%- include('../partials/_links.ejs') %>
+          <div class="box" style="max-width: 900px; margin: 0 auto">
+            <div class="field has-addons">
+              <div class="control">
+                <div class="select">
+                  <select id="type-filter">
+                    <option value="all">All</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Subscription">Subscription</option>
+                    <option value="Utility">Utility</option>
+                    <option value="Loan">Loan</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="columns is-multiline" id="expenses-list">
-            <% expenses.forEach((expense)=>{ %>
-              <div class="column is-one-third-desktop is-half-tablet is-full-mobile expense-item"
-                data-type="<%= expense.type %>">
-                <div class="card mb-4">
-                  <div class="card-content">
-                    <p class="title is-5 has-text-centered mb-3">
-                      <%= expense.name %>
-                    </p>
-                    <p><strong>Type:</strong>
-                      <%= expense.type %>
-                    </p>
-                    <p class="mt-2">
-                      <strong>Schedule:</strong>
-                      <span>
-                        <%= expense.costType==="Variable" ? expense.costType : expense.schedule %>
-                      </span>
-                    </p>
-                    <p class="mt-2">
-                      <strong>Cost:</strong>
-                      <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                        currentUser.currency.code }).format(expense.cost) %>
-                    </p>
-                    <div class="field is-grouped is-grouped-centered mt-4">
-                      <p class="control">
-                        <a class="button is-light is-info" href="/users/<%=user._id%>/budget/<%= expense._id %>">View
-                          Expense</a>
+            <div class="columns is-multiline" id="expenses-list">
+              <% expenses.forEach((expense)=>{ %>
+                <div class="column is-one-third-desktop is-half-tablet is-full-mobile expense-item"
+                  data-type="<%= expense.type %>">
+                  <div class="card">
+                    <div class="card-content">
+                      <p class="title is-5 has-text-centered">
+                        <%= expense.name %>
                       </p>
+                      <p><strong>Type:</strong>
+                        <%= expense.type %>
+                      </p>
+                      <p>
+                        <strong>Schedule:</strong>
+                        <span>
+                          <%= expense.costType==="Variable" ? expense.costType : expense.schedule %>
+                        </span>
+                      </p>
+                      <p>
+                        <strong>Cost:</strong>
+                        <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
+                          currentUser.currency.code }).format(expense.cost) %>
+                      </p>
+                      <div class="field" style="margin-top: 1rem;">
+                        <div class="field is-grouped is-grouped-centered">
+                          <p class="control">
+                            <a class="button is-primary" href="/users/<%=user._id%>/budget/<%= expense._id %>">View
+                              Expense</a>
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <% }) %>
+                <% }) %>
+            </div>
           </div>
-        </div>
       </div>
     </section>
     <script>

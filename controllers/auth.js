@@ -10,15 +10,17 @@ const User = require('../models/user.js');
 router.use(passUserToView);
 
 router.get('/sign-up', (req, res) => {
-  res.render('auth/sign-up.ejs', { currencies, req });
+  const path = req.path
+  res.render('auth/sign-up.ejs', { currencies, path });
 });
 
 router.get("/sign-in", (req, res) => {
   // If user is already signed in, redirect to home
+  const path = req.path
   if (req.session.user) {
     return res.redirect("/");
   }
-  res.render("auth/sign-in.ejs", { req });
+  res.render("auth/sign-in.ejs", { path });
 });
 
 router.get("/sign-out", (req, res) => {

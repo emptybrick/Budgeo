@@ -52,10 +52,11 @@ app.use('/auth', authController);
 app.use(passUserToView);
 
 app.get('/', (req, res) => {
+  const path = req.path
   if (req.session.user) {
     res.redirect(`/users/${req.session.user._id}/budget`);
   } else {
-    res.render('index.ejs', { req });
+    res.render('index.ejs', { path });
   }
 });
 

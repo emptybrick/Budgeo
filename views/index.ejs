@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Budgeo</title>
     <link rel="icon" href="/images/logo.png" type="image/png">
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
-    />
+    <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
   </head>
   <%- include('./partials/_navbar.ejs') %>
   <body>
@@ -16,27 +13,27 @@
       <div class="container has-text-centered">
         <h1 class="title is-1 mt-1">Welcome to Budgeo</h1>
         <h4 class="title is-5">The Budget Planner Just For You!</h4>
-        <img class="mt-4" src="/images/logo.png" alt="Logo">
+        <img src="/images/logo.png" alt="Logo" style="max-width: 500px;">
         <div
-          class="mt-6"
           style="
             justify-content: center;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
+            margin-top: 1.5rem;
           "
         >
           <a
             href="/auth/sign-in"
             class="button is-primary has-background-primary-80 has-text-weight-bold is-large"
-            style="width: 260px"
+            style="width: 200px"
           >
             Sign In
           </a>
           <a
             href="/auth/sign-up"
             class="button is-primary has-background-primary-80  has-text-weight-bold is-large"
-            style="width: 260px"
+            style="width: 200px"
           >
             Sign Up
           </a>

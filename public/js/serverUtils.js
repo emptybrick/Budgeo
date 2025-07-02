@@ -36,7 +36,7 @@ function calculateVariableCost(historical) {
     const yearDiff = (Math.abs(yearEarliest - yearLatest) - 1)
     const monthsOfYearDiff = yearDiff * 12
     const totalMonthsCovered = monthsOfYearDiff + monthsLeftEarliest + MonthsCoveredLatest
-  
+
     // array of costs
     const costs = historical.map(entry => entry.cost)
 
@@ -45,8 +45,8 @@ function calculateVariableCost(historical) {
         return { cost: costs.reduce((sum, cost) => sum + cost, 0) }
     }
 
-//----- following is bootstapping for robust averaging and getting a 95% Confidence Interval ---//
-    
+    //----- following is bootstapping for robust averaging and getting a 95% Confidence Interval ---//
+
     // Function to create a bootstrap sample
     function getBootstrapSample(data) {
         const sample = [];
@@ -100,7 +100,7 @@ function calculateVariableCost(historical) {
         low: ciLow,
         high: ciHigh
     }
-    
+
 }
 
 function monthFromLocale(monthName, locale) {
@@ -113,48 +113,10 @@ function monthFromLocale(monthName, locale) {
         months.push(month)
     }
     return months.indexOf(monthName);
-  }
-
-// need to figure this out and make it my own
-function pieChart(expenses, currency) {
-    const creditCards = expenses.filter(expense => expense.type === 'Credit Card');
-    const loans = expenses.filter(expense => expense.type === 'Loan');
-    const utilities = expenses.filter(expense => expense.type === 'Utility');
-    const subscriptions = expenses.filter(expense => expense.type === 'Subscription');
-    const others = expenses.filter(expense => expense.type === 'Other');
-    const totalCreditCards = creditCards.reduce((sum, expense) => sum + expense.cost, 0);
-    const totalLoans = loans.reduce((sum, expense) => sum + expense.cost, 0);
-    const totalUtilities = utilities.reduce((sum, expense) => sum + expense.cost, 0);
-    const totalSubscriptions = subscriptions.reduce((sum, expense) => sum + expense.cost, 0);
-    const totalOthers = others.reduce((sum, expense) => sum + expense.cost, 0);
-    
-    const pieData = [
-        { label: 'Credit Cards', value: totalCreditCards, color: '#FF6384' },
-        { label: 'Loans', value: totalLoans, color: '#36A2EB' },
-        { label: 'Utilities', value: totalUtilities, color: '#FFCE56' },
-        { label: 'Subscriptions', value: totalSubscriptions, color: '#4BC0C0' },
-        { label: 'Other', value: totalOthers, color: '#9966FF' }
-    ];
-
-    // Only include categories with value > 0
-    const filtered = pieData.filter(d => d.value > 0);
-
-    return {
-        labels: filtered.map(d => d.label),
-        data: filtered.map(d => d.value),
-        backgroundColor: filtered.map(d => d.color),
-        formattedValues: filtered.map(d =>
-            new Intl.NumberFormat(currency.locale, {
-                style: 'currency',
-                currency: currency.code
-            }).format(d.value)
-        )
-    };
 }
 
 module.exports = {
     calculateVariableCost,
     currencies,
-    pieChart,
     monthFromLocale
 };
