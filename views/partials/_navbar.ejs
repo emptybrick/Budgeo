@@ -1,48 +1,236 @@
 <!-- views/partials/_navbar.ejs -->
 <style>
-  .navbar-menu {
-    background: none !important;
+  .form-step {
+    display: none;
   }
-  </style>
-<nav class="navbar is-primary" role="navigation" aria-label="main navigation">
-  <div class="navbar-menu is-active">
-    <div class="navbar-start">
-      <a href="/"
-        ><img
-          class="navbar-item"
-          style="max-height: 60px"
-          src="/images/logo-with-text-white.png"
-      /></a>
-    </div>
-    <div class="navbar-end"></div>
-    <% if(user) { %>
-      <a
-        class="navbar-item has-text-weight-bold has-text-white"
-        href="/users/<%= user._id %>/budget/data"
-        >Financial Data</a>
-      <a
-        class="navbar-item has-text-weight-bold has-text-white"
-        href="/users/<%= user._id %>/budget"
-        >Expenses</a
-      >
-      <a
-        class="navbar-item has-text-weight-bold has-text-white"
-        href="/auth/sign-out"
-        >Sign Out</a
-      >
-      <% } else if (path === '/sign-up' || path === '/') { %>
-      <a
-        class="navbar-item has-text-weight-bold has-text-white"
-        href="/auth/sign-in"
-        >Sign In</a
-      >
-      <% } else { %>
-      <a
-        class="navbar-item has-text-weight-bold has-text-white"
-        href="/auth/sign-up"
-        >Sign Up</a
-      >
-      <% } %>
+
+  .form-step.active {
+    display: block;
+  }
+
+  .input:active,
+  .input:focus,
+  .is-active.input,
+  .is-active.textarea,
+  .is-focused.input,
+  .is-focused.textarea,
+  .select select.is-active,
+  .select select.is-focused,
+  .select select:active,
+  .select select:focus,
+  .textarea:active,
+  .textarea:focus {
+    border-color: #34495e !important;
+    box-shadow: 0 0 0 .125em #34495e33 !important;
+  }
+
+  .add-row-button,
+  .back-form-button {
+    border: .15rem solid #34495e !important;
+  }
+
+  .navbar-burger {
+    color: #ecf0f1 !important;
+  }
+
+  @media screen and (min-width: 768px) {
+
+    .navbar-end,
+    .navbar-item,
+    .navbar-menu {
+      display: flex !important;
+      justify-content: flex-end !important;
+      margin-left: auto !important;
+      background-color: #34495e !important;
+    }
+
+    .navbar {
+      display: flex !important;
+    }
+
+    .navbar-end {
+      align-items: center !important;
+    }
+
+    .navbar-burger {
+      display: none !important;
+    }
+  }
+
+  @media screen and (width <=768px) {
+    .button.main-link-button {
+      font-size: 1.5rem !important;
+    }
+
+    .columns.is-multiline {
+      display: flex;
+    }
+  }
+
+  @media screen and (width <=630px) {
+    .main-link-group {
+      gap: 0 !important;
+    }
+
+    .button.main-link-button {
+      font-size: 1.25rem !important;
+    }
+
+    .data-estimate-button {
+      font-size: 1rem !important;
+    }
+  }
+
+  @media screen and (width <=480px) {
+    .columns.is-multiline {
+      display: block !important;
+    }
+
+    .button.main-link-button {
+      font-size: 1rem !important;
+    }
+
+    .view-expense-button,
+    .show-page-button,
+    .next-form-button,
+    .add-expense-button,
+    .back-form-button,
+    .add-row-button {
+      font-size: .9rem !important;
+    }
+
+    .data-estimate-button {
+      font-size: .8rem !important;
+    }
+
+    .welcome-page-message {
+      font-size: 1.5rem !important;
+    }
+  }
+
+  @media screen and (width <=400px) {
+    .button.main-link-button {
+      font-size: .9rem !important;
+    }
+
+    .main-link-group {
+      gap: 0 !important;
+    }
+
+    .data-estimate-button {
+      font-size: .8rem !important;
+      width: 63px !important;
+    }
+
+    .view-expense-button,
+    .show-page-button,
+    .next-form-button,
+    .add-expense-button,
+    .back-form-button,
+    .add-row-button {
+      font-size: .8rem !important;
+    }
+
+    .welcome-page-message {
+      font-size: 1.25rem !important;
+    }
+  }
+
+  @media screen and (width <=344px) {
+    .button.main-link-button {
+      font-size: .8rem !important;
+    }
+
+    .main-link-group {
+      gap: 0 !important;
+    }
+
+    .data-estimate-button {
+      font-size: .7rem !important;
+      width: 53px !important;
+    }
+
+    .view-expense-button,
+    .show-page-button,
+    .next-form-button,
+    .add-expense-button,
+    .back-form-button {
+      font-size: .8rem !important;
+    }
+
+    .add-row-button {
+      font-size: .7rem !important;
+    }
+  }
+
+  @media screen and (width > 520px) {
+    .welcome-page-message {
+      font-size: 1.75rem !important;
+    }
+  }
+
+  @media screen and (width > 620px) {
+    .welcome-page-message {
+      font-size: 2rem !important;
+    }
+  }
+
+  @media screen and (width > 768px) {
+    .welcome-page-message {
+      font-size: 2.5rem !important;
+    }
+  }
+</style>
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a href="/"><img class="navbar-item" style="max-height: 60px" src="/images/logo-with-text-white.png" /></a>
+
+    <a class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-bar-menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </a>
+  </div>
+  <div class="navbar-menu" id="nav-bar-menu">
+    <div class="navbar-end">
+      <% if(user) { %>
+        <a class="navbar-item has-text-weight-bold has-text-white link"
+          href="/users/<%= user._id %>/budget/data">Financial
+          Data</a>
+        <a class="navbar-item has-text-weight-bold has-text-white link"
+          href="/users/<%= user._id %>/budget">Expenses</a>
+        <a class="navbar-item has-text-weight-bold has-text-white link" href="/auth/sign-out">Sign Out</a>
+        <% } else if (path==='/sign-up' || path==='/' ) { %>
+          <a class="navbar-item has-text-weight-bold has-text-white link" href="/auth/sign-in">Sign In</a>
+          <% } else { %>
+            <a class="navbar-item has-text-weight-bold has-text-white link" href="/auth/sign-up">Sign Up</a>
+            <% } %>
     </div>
   </div>
 </nav>
+<Script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // Get all "navbar-burger" elements
+    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+    // Add a click event on each of them
+    $navbarBurgers.forEach(el => {
+      el.addEventListener('click', () => {
+
+        // Get the target from the "data-target" attribute
+        const target = el.dataset.target;
+        const $target = document.getElementById(target);
+
+        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+        el.classList.toggle('is-active');
+        $target.classList.toggle('is-active');
+
+        const navBarLinks = document.querySelectorAll(".navbar-item.link");
+        navBarLinks.forEach(el => {
+          el.classList.toggle('has-text-white');
+        })
+      });
+    });
+  });
+</Script>

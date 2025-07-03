@@ -1,54 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign Up</title>
-    <link rel="icon" href="/images/logo.png" type="image/png" />
-    <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
-    <style>
-      .input:active,
-      .input:focus,
-      .is-active.input,
-      .is-active.textarea,
-      .is-focused.input,
-      .is-focused.textarea,
-      .select select.is-active,
-      .select select.is-focused,
-      .select select:active,
-      .select select:focus,
-      .textarea:active,
-      .textarea:focus {
-        border-color: #34495e !important;
-        box-shadow: 0 0 0 .125em #34495e33 !important;
-      }
-    
-      .select:not(.is-multiple):not(.is-loading)::after {
-        border-color: #238cd1;
-      }
-    </style>
-  </head>
-  <body>
-    <%- include('../partials/_navbar.ejs') %>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+  <link rel="icon" href="/images/logo-white.png" type="image/png" />
+  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
+</head>
+
+<body>
+  <%- include('../partials/_navbar.ejs') %>
     <section class="section" style="min-height: 100vh">
       <div class="container">
         <h1 class="title is-3 has-text-centered">Create a new account!</h1>
-        <form
-          action="/auth/sign-up"
-          method="POST"
-          class="box"
-          style="max-width: 400px; margin: 0 auto"
-        >
+        <form action="/auth/sign-up" method="POST" class="box" style="max-width: 400px; margin: 0 auto">
           <div class="field">
             <label class="label" for="username">Username:</label>
             <div class="control">
-              <input
-                class="input"
-                type="text"
-                name="username"
-                id="username"
-                required
-              />
+              <input class="input" type="text" name="username" id="username" required />
             </div>
           </div>
           <div class="field">
@@ -57,11 +27,11 @@
               <div class="select is-fullwidth">
                 <select name="currency" id="currency" required>
                   <option value="">Select a Currency</option>
-                  <% currencies.forEach(element => { %>
-                  <option value="<%= JSON.stringify(element) %>">
-                    <%= element.name %>
-                  </option>
-                  <% }); %>
+                  <% currencies.forEach(element=> { %>
+                    <option value="<%= JSON.stringify(element) %>">
+                      <%= element.name %>
+                    </option>
+                    <% }); %>
                 </select>
               </div>
             </div>
@@ -69,25 +39,13 @@
           <div class="field">
             <label class="label" for="password">Password:</label>
             <div class="control">
-              <input
-                class="input"
-                type="password"
-                name="password"
-                id="password"
-                required
-              />
+              <input class="input" type="password" name="password" id="password" required />
             </div>
           </div>
           <div class="field">
             <label class="label" for="confirmPassword">Confirm Password:</label>
             <div class="control">
-              <input
-                class="input"
-                type="password"
-                name="confirmPassword"
-                id="confirmPassword"
-                required
-              />
+              <input class="input" type="password" name="confirmPassword" id="confirmPassword" required />
             </div>
           </div>
           <div class="field is-grouped is-grouped-centered">
@@ -98,5 +56,6 @@
         </form>
       </div>
     </section>
-  </body>
+</body>
+
 </html>

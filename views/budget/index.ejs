@@ -7,35 +7,16 @@
   <title>
     <%= user.username.endsWith('s') ? user.username + "' Budget" : user.username + "'s Budget" %>
   </title>
-  <link rel="icon" href="/images/logo.png" type="image/png" />
+  <link rel="icon" href="/images/logo-white.png" type="image/png" />
   <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
-  <style>
-    .input:active,
-    .input:focus,
-    .is-active.input,
-    .is-active.textarea,
-    .is-focused.input,
-    .is-focused.textarea,
-    .select select.is-active,
-    .select select.is-focused,
-    .select select:active,
-    .select select:focus,
-    .textarea:active,
-    .textarea:focus {
-      border-color: #34495e !important;
-      box-shadow: 0 0 0 .125em #34495e33 !important;
-    }
-    .select:not(.is-multiple):not(.is-loading)::after {
-      border-color: #238cd1;
-    }
-  </style>
+
 </head>
 
 <body>
   <%- include('../partials/_navbar.ejs') %>
     <section class="section">
       <div class="container">
-        <h1 class="title is-1 has-text-centered">Expenses</h1>
+        <h1 class="title is-2 has-text-centered">Expenses</h1>
         <%- include('../partials/_links.ejs') %>
           <div class="box" style="max-width: 900px; margin: 0 auto">
             <div class="field has-addons">
@@ -54,10 +35,11 @@
             </div>
             <div class="columns is-multiline" id="expenses-list">
               <% expenses.forEach((expense)=>{ %>
-                <div class="column is-one-third-desktop is-half-tablet is-full-mobile expense-item"
+                <div class="column expense-item"
                   data-type="<%= expense.type %>">
                   <div class="card">
                     <div class="card-content">
+                      <div class="content">
                       <p class="title is-5 has-text-centered">
                         <%= expense.name %>
                       </p>
@@ -75,10 +57,11 @@
                         <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
                           currentUser.currency.code }).format(expense.cost) %>
                       </p>
+                    </div>
                       <div class="field" style="margin-top: 1rem;">
                         <div class="field is-grouped is-grouped-centered">
                           <p class="control">
-                            <a class="button is-primary" href="/users/<%=user._id%>/budget/<%= expense._id %>">View
+                            <a class="button is-primary view-expense-button" href="/users/<%=user._id%>/budget/<%= expense._id %>">View
                               Expense</a>
                           </p>
                         </div>

@@ -1,44 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Budgeo</title>
-    <link rel="icon" href="/images/logo.png" type="image/png">
-    <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
-  </head>
-  <%- include('./partials/_navbar.ejs') %>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budgeo</title>
+  <link rel="icon" href="/images/logo-white.png" type="image/png">
+  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
+</head>
+<%- include('./partials/_navbar.ejs') %>
+
   <body>
     <section class="section">
-      <div class="container has-text-centered">
-        <h1 class="title is-1 mt-1">Welcome to Budgeo</h1>
-        <h4 class="title is-5">The Budget Planner Just For You!</h4>
-        <img src="/images/logo.png" alt="Logo" style="max-width: 500px;">
-        <div
-          style="
+      <div class="container has-text-centered">      
+        <div class="content">
+          <div style="display: flex; justify-content: center; align-items: center; gap: 1.25rem;">
+            <img id="budgeo-text-logo" src="/images/budgeo.png" style="width: 600px; min-width: 300px; margin-bottom: 1.5rem;">
+          </div>
+          <img src="/images/logo.png" alt="Logo" style="width: 600px; min-width: 250px;">
+        </div>
+        <div class="title is-2 is-size-4-mobile welcome-page-message">The Budget Planner Just For You!</div>
+        <div style="
             justify-content: center;
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-top: 1.5rem;
-          "
-        >
-          <a
-            href="/auth/sign-in"
-            class="button is-primary has-background-primary-80 has-text-weight-bold is-large"
-            style="width: 200px"
-          >
+            margin-top: 2.5rem;
+          ">
+          <a href="/auth/sign-in" class="button is-primary has-background-primary-80 has-text-weight-bold is-large"
+            style="width: 200px">
             Sign In
           </a>
-          <a
-            href="/auth/sign-up"
-            class="button is-primary has-background-primary-80  has-text-weight-bold is-large"
-            style="width: 200px"
-          >
+          <a href="/auth/sign-up" class="button is-primary has-background-primary-80  has-text-weight-bold is-large"
+            style="width: 200px">
             Sign Up
           </a>
         </div>
       </div>
     </section>
   </body>
+
 </html>
