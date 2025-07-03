@@ -1,11 +1,29 @@
-// client side needs access to expense(= currentUser.budget) - /new, /data, /edit
-// client side needs access to currency(= currentUser.currency)
-
-// static const variables set
+// -------------------------- CONSTANTS ---------------------------- //
 const nextForm = document.getElementById("initial-form");
 const variableForm = document.getElementById("variable-form");
 const fixedForm = document.getElementById("fixed-form");
 const addRowButton = document.querySelector("#add-row");
+
+// data for error messages
+const inputNames = [
+    {
+        id: "name-input",
+        errorMessage: "Please enter a name (max 15 characters).",
+    },
+    {
+        id: "cost-input",
+        errorMessage: "Please enter a cost.",
+    },
+    {
+        id: "month-input",
+        errorMessage:
+            "Please select a month (Each Month/Year pair must be unique.)",
+    },
+    {
+        id: "year-input",
+        errorMessage: "Please select a year (Each Month/Year pair must be unique.)",
+    },
+];
 
 // initialize let variables
 let rowIndex = 1; // set to 1 for new forms (table starts with 1 row index 0)
@@ -22,7 +40,11 @@ if (expense.historical && expense.historical.length > 0) {
     reindexRows();
 }
 
-// client side
+// -------------------------- FUNCTIONS --------------------------- //
+
+// simple function that gets the string of the month in a users locale and converts to number
+// works by generating a complete list of month names in locale then finding index of the passed
+// month in the array which corresponds to the 0-11 new Date method
 function monthFromLocale(monthName, locale) {
     let months = [];
     for (let i = 0; i < 12; i++) {
@@ -35,7 +57,8 @@ function monthFromLocale(monthName, locale) {
     return months.indexOf(monthName);
 }
 
-// client side
+// extremely vital function to reindex items in variable forms as rows are
+// added and removed
 function reindexRows() {
     const rows = document.querySelectorAll("#payment-table tbody tr");
     let idx = 0;
@@ -65,7 +88,8 @@ function reindexRows() {
     rowIndex = idx;
 }
 
-// client side
+// removed current row after add row is clicked and inputs a new div with the values
+// and sets to read only so user cannot access and change (prevents user mistakes)
 function setRowReadOnly(index, month, year) {
     return new Promise((resolve) => {
         const lastRow = document.getElementById(`month-year[${index}]`);
@@ -108,7 +132,8 @@ function setRowReadOnly(index, month, year) {
     });
 }
 
-// client side
+// add row function set up as async and awaits addRowData and setRowReadOnly for
+// proper functioning, multiple steps are taken that must be completed in order
 async function addRow() {
     const tbody = document.querySelector("tbody");
     let currentRowIndex = tbody.rows.length - 1;
@@ -146,7 +171,7 @@ async function addRow() {
     }
 }
 
-// client side
+// adds new table row on historical data variable forms
 function addRowData() {
     return new Promise((resolve) => {
         const table = document.getElementById("payment-table");
@@ -202,8 +227,7 @@ function addRowData() {
     });
 }
 
-// client side
-// need to reset rowIndexes function
+// removes rows on new and edit variable forms for historical data
 function removeRow(button) {
     const monthSelected = document.getElementById(
         `month[${button.dataset.index}]`
@@ -231,14 +255,14 @@ function removeRow(button) {
     }
 }
 
-// client side
+// go back button for new expense form (step form)
 function goBack() {
     document.getElementById("fixed-form").classList.remove("active");
     document.getElementById("variable-form").classList.remove("active");
     document.getElementById("initial-form").classList.add("active");
 }
 
-// client side
+// initially formats all cost input fields to user locale
 function updatePlaceholders(currency) {
     const costInputs = document.querySelectorAll(".cost-input");
     costInputs.forEach((input) => {
@@ -249,8 +273,93 @@ function updatePlaceholders(currency) {
     });
 }
 
-// client side
-// Listen for input events on cost fields to format currency as user types
+// script to change error messages for input and select fields
+function updateErrorMessages() {
+    inputNames.forEach((input) => {
+        document.querySelectorAll(`.${input.id}`).forEach((selector) => {
+            selector.addEventListener("invalid", function () {
+                this.setCustomValidity(input.errorMessage);
+            });
+            selector.addEventListener("input", function () {
+                this.setCustomValidity("");
+            });
+        });
+    });
+};
+
+// updates error message for new rows as added
+function addErrorMessageListeners(row) {
+    inputNames.forEach((input) => {
+        const newInput = row.querySelector(`.${input.id}`);
+        if (newInput) {
+            newInput.addEventListener("invalid", function () {
+                this.setCustomValidity(input.errorMessage);
+            });
+            newInput.addEventListener("input", function () {
+                this.setCustomValidity("");
+            });
+        }
+    });
+}
+
+// updates elements innerHTML for data.ejs estimates
+function changeSchedule(type) {
+    const totalCosts = document.querySelector("#total-cost");
+    const estimatedCosts = document.querySelector("#estimate-cost");
+    let message = "";
+    let confidenceMessage = "";
+    let formattedTotal;
+    let formattedHigh;
+    let formattedLow;
+
+    if (!totalCosts || !estimatedCosts) {
+        return;
+    }
+    switch (type) {
+        case "Weekly":
+            formattedTotal = scheduleData.weeklyTotal;
+            formattedHigh = scheduleData.weeklyHigh;
+            formattedLow = scheduleData.weeklyLow;
+            break;
+        case "Monthly":
+            formattedTotal = scheduleData.monthlyTotal;
+            formattedHigh = scheduleData.monthlyHigh;
+            formattedLow = scheduleData.monthlyLow;
+            break;
+        case "Quarterly":
+            formattedTotal = scheduleData.quarterlyTotal;
+            formattedHigh = scheduleData.quarterlyHigh;
+            formattedLow = scheduleData.quarterlyLow;
+            break;
+        case "Annually":
+            formattedTotal = scheduleData.annuallyTotal;
+            formattedHigh = scheduleData.annuallyHigh;
+            formattedLow = scheduleData.annuallyLow;
+            break;
+    }
+
+    switch (type) {
+        case "Weekly":
+            message = `<span class="has-text-weight-bold">Weekly Estimate: </span> ${formattedTotal}`;
+            break;
+        case "Monthly":
+            message = `<span class="has-text-weight-bold">Monthly Estimate: </span> ${formattedTotal}`;
+            break;
+        case "Quarterly":
+            message = `<span class="has-text-weight-bold">Quarterly Estimate: </span> ${formattedTotal}`;
+            break;
+        case "Annually":
+            message = `<span class="has-text-weight-bold">Annual Estimate: </span> ${formattedTotal}`;
+            break;
+    }
+    confidenceMessage = `<span class="has-text-weight-bold">Confidence Estimate: </span> ${formattedLow} to ${formattedHigh}`;
+    totalCosts.innerHTML = message;
+    estimatedCosts.innerHTML = confidenceMessage;
+}
+
+// -------------------------- EVENT LISTENERS ---------------------------- //
+
+// Listen for input events on cost fields to format currency and add symbol where needed as user types
 document.addEventListener("input", (e) => {
     if (e.target.classList.contains("cost-input")) {
         // Remove all non-numeric characters and update the input value immediately
@@ -317,7 +426,6 @@ document.addEventListener("input", (e) => {
     }
 });
 
-// client side
 // Handle navigation between forms based on payment type selection
 if (nextForm) {
     nextForm.addEventListener("submit", async (event) => {
@@ -335,199 +443,7 @@ if (nextForm) {
     });
 }
 
-// client side
-// data for error messages
-const inputNames = [
-    {
-        id: "name-input",
-        errorMessage: "Please enter a name (max 15 characters).",
-    },
-    {
-        id: "cost-input",
-        errorMessage: "Please enter a cost.",
-    },
-    {
-        id: "month-input",
-        errorMessage:
-            "Please select a month (Each Month/Year pair must be unique.)",
-    },
-    {
-        id: "year-input",
-        errorMessage: "Please select a year (Each Month/Year pair must be unique.)",
-    },
-];
-
-// client side
-// script to change error messages for input and select fields
-function updateErrorMessages() {
-    inputNames.forEach((input) => {
-        document.querySelectorAll(`.${input.id}`).forEach((selector) => {
-            selector.addEventListener("invalid", function () {
-                this.setCustomValidity(input.errorMessage);
-            });
-            selector.addEventListener("input", function () {
-                this.setCustomValidity("");
-            });
-        });
-    });
-};
-
-// client side
-// updates error message for new rows as added
-function addErrorMessageListeners(row) {
-    inputNames.forEach((input) => {
-        const newInput = row.querySelector(`.${input.id}`);
-        if (newInput) {
-            newInput.addEventListener("invalid", function () {
-                this.setCustomValidity(input.errorMessage);
-            });
-            newInput.addEventListener("input", function () {
-                this.setCustomValidity("");
-            });
-        }
-    });
-}
-
-// goes with changeschedule function can move to server
-// simple move no changes needed
-// function changeCost(payment, schedule, newSchedule) {
-//     switch (schedule) {
-//         case "Weekly":
-//             payment = payment * 52;
-//             break;
-//         case "Bi-Weekly":
-//             payment = payment * 26;
-//             break;
-//         case "Monthly":
-//             payment = payment * 12;
-//             break;
-//         case "Bi-Monthly":
-//             payment = payment * 6;
-//             break;
-//         case "Quarterly":
-//             payment = payment * 4;
-//             break;
-//         case "Semi-Annually":
-//             payment = payment * 2;
-//             break;
-//         case "Annually":
-//             break;
-//     }
-//     switch (newSchedule) {
-//         case "Weekly":
-//             payment = (payment / 52).toFixed(2);
-//             break;
-//         case "Monthly":
-//             payment = (payment / 12).toFixed(2);
-//             break;
-//         case "Quarterly":
-//             payment = (payment / 4).toFixed(2);
-//             break;
-//         case "Annually":
-//             break;
-//     }
-//     return payment;
-// }
-
-// can have server generate these values and send to client to switch as needed
-// also updates elements innerHTML -- need to figure out
-// need to pass all 4 schedule data sets from server
-function changeSchedule(type) {
-    const totalCosts = document.querySelector("#total-cost");
-    const estimatedCosts = document.querySelector("#estimate-cost");
-    let message = "";
-    let confidenceMessage = "";
-    let formattedTotal;
-    let formattedHigh;
-    let formattedLow;
-
-    if (!totalCosts || !estimatedCosts) {
-        return;
-    }
-
-    switch (type) {
-        case "Weekly":
-            formattedTotal = scheduleData.weeklyTotal;
-            formattedHigh = scheduleData.weeklyHigh;
-            formattedLow = scheduleData.weeklyLow;
-            break;
-        case "Monthly":
-            formattedTotal = scheduleData.monthlyTotal;
-            formattedHigh = scheduleData.monthlyHigh;
-            formattedLow = scheduleData.monthlyLow;
-            break;
-        case "Quarterly":
-            formattedTotal = scheduleData.quarterlyTotal;
-            formattedHigh = scheduleData.quarterlyHigh;
-            formattedLow = scheduleData.quarterlyLow;
-            break;
-        case "Annually":
-            formattedTotal = scheduleData.annuallyTotal;
-            formattedHigh = scheduleData.annuallyHigh;
-            formattedLow = scheduleData.annuallyLow;
-            break;
-    }
-
-    switch (type) {
-        case "Weekly":
-            message = `<span class="has-text-weight-bold">Weekly Estimate: </span> ${formattedTotal}`;
-            break;
-        case "Monthly":
-            message = `<span class="has-text-weight-bold">Monthly Estimate: </span> ${formattedTotal}`;
-            break;
-        case "Quarterly":
-            message = `<span class="has-text-weight-bold">Quarterly Estimate: </span> ${formattedTotal}`;
-            break;
-        case "Annually":
-            message = `<span class="has-text-weight-bold">Annual Estimate: </span> ${formattedTotal}`;
-            break;
-    }
-    confidenceMessage = `<span class="has-text-weight-bold">Confidence Estimate: </span> ${formattedLow} to ${formattedHigh}`;
-    totalCosts.innerHTML = message;
-    estimatedCosts.innerHTML = confidenceMessage;
-}
-
-// can have server generate everything besides calling for the canvas and inputting new chart
-// used only on data.ejs or /data
-async function pieChart(pieData) {
-    const chartElement = document.getElementById("pie-chart");
-    if (!chartElement) {
-        return;
-    }
-  
-    new Chart(chartElement, {
-        type: "pie",
-        data: {
-            labels: pieData.map((piece) => piece.label),
-            datasets: [
-                {
-                    // label: "Categories",
-                    data: pieData.map((piece) => piece.value),
-                    backgroundColor: pieData.map((piece) => piece.color),
-                    hoverOffset: 4,
-                },
-            ],
-        },
-        options: {
-            // responsive: true,
-            // maintainAspectRatio: false,
-            locale: currency.locale,
-            // cutout: 55,
-            plugins: {
-                legend: {
-                    labels: {
-                        font: {
-                            size: 14,
-                        },
-                    },
-                },
-            },
-        },
-    });
-}
-
-// Set initial placeholders for all cost input fields
+// ---------------- RUN ON DOM LOAD ------------------ //
 updatePlaceholders(currency);
 updateErrorMessages();
 changeSchedule("Monthly");
-pieChart(pieData);

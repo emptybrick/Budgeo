@@ -39,7 +39,7 @@
                 <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
                   currency.code }).format(expense.cost) %>
               </p>
-              <% if (expense.costType==="Variable" ) { %>
+              <% if (expense.costType==="Variable" && expense.costHigh && expense.costLow) { %>
                 <p>
                   <strong>Estimation:</strong>
                   <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
@@ -84,7 +84,7 @@
                         href="/users/<%=user._id%>/budget/<%= expense._id %>/edit">Edit</a>
                     </div>
                   </div>
-                  <% if (expense.historical.length> 0) { %>
+                  <% if (expense.historical.length > 0) { %>
                     <h3 class="subtitle is-5 mt-5 has-text-centered">
                       Historical Payment Data
                     </h3>

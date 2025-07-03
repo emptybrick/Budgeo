@@ -1,3 +1,5 @@
+// and array of the top 20 used currencies that a user can choose at signup
+// this could become related data...
 const currencies = [
     { name: 'US Dollar', code: 'USD', locale: 'en-US', symbol: '$', symbolPosition: 'front', placeholder: '0.00' },
     { name: 'Euro', code: 'EUR', locale: 'de-DE', symbol: '€', symbolPosition: 'back', placeholder: '0.00' },
@@ -20,6 +22,8 @@ const currencies = [
     { name: 'New Zealand Dollar', code: 'NZD', locale: 'en-NZ', symbol: 'NZ$', symbolPosition: 'front', placeholder: '0.00' }
 ];
 
+// calculates the historical payment data received from client and bootstraps
+// to provide a robust estimate of monthly expenditures
 function calculateVariableCost(historical) {
 
     // calculating total amount of months between earliest and latest entries
@@ -103,6 +107,9 @@ function calculateVariableCost(historical) {
 
 }
 
+// if server recieves a string for month name instead of a number
+// it checks that string against a generated array of user locale
+// months and gets the indexOf and returns for the proper value server needs
 function monthFromLocale(monthName, locale) {
     let months = [];
     for (let i = 0; i < 12; i++) {
@@ -115,6 +122,7 @@ function monthFromLocale(monthName, locale) {
     return months.indexOf(monthName);
 }
 
+// used in conjuction with schedule and piechart functions to format payments as needed
 function changeCost(payment, schedule, newSchedule) {
     switch (schedule) {
         case "Weekly":
@@ -154,6 +162,7 @@ function changeCost(payment, schedule, newSchedule) {
     return payment;
 }
 
+// generates pieChart data that is passed to /data
 async function pieChart(expense) {
     const newExpenses = JSON.parse(JSON.stringify(expense));
     newExpenses.forEach((expense) => {
@@ -172,20 +181,20 @@ async function pieChart(expense) {
     );
     const others = newExpenses.filter((expense) => expense.type === "Other");
 
-    const creditCardsTotal = creditCards.reduce(
+    const creditCardsTotal = Number(creditCards.reduce(
         (sum, expense) => sum + expense.cost,
         0
-    );
-    const loansTotal = loans.reduce((sum, expense) => sum + expense.cost, 0);
-    const utilitiesTotal = utilities.reduce(
+    ).toFixed(2));
+    const loansTotal = Number(loans.reduce((sum, expense) => sum + expense.cost, 0).toFixed(2));
+    const utilitiesTotal = Number(utilities.reduce(
         (sum, expense) => sum + expense.cost,
         0
-    );
-    const subscriptionsTotal = subscriptions.reduce(
+    ).toFixed(2));
+    const subscriptionsTotal = Number(subscriptions.reduce(
         (sum, expense) => sum + expense.cost,
         0
-    );
-    const othersTotal = others.reduce((sum, expense) => sum + expense.cost, 0);
+    ).toFixed(2));
+    const othersTotal = Number(others.reduce((sum, expense) => sum + expense.cost, 0).toFixed(2));
 
     const pieData = [
         { label: "Credit Cards", value: creditCardsTotal, color: "#3D5A77" },
@@ -198,7 +207,8 @@ async function pieChart(expense) {
     return pieData 
 }
 
-// not so much changeSchedule, as getSchedulesFormatted on server only used in /data
+// formats expense data into 4 categories that are passed to /data for displaying
+// estimates and the client side just presses a button to switch between them
 function getSchedulesFormatted(expense, type, currency) {
     const newExpense = JSON.parse(JSON.stringify(expense));
     newExpense.forEach((expense) => {
@@ -293,10 +303,26 @@ function getSchedulesFormatted(expense, type, currency) {
     return { formattedTotal, formattedHigh, formattedLow }
 }
 
+// gets user data for server
+async function getUserData(User, req, type) {
+    const currentUser = await User.findById(req.session.user._id)
+    const username = currentUser.username
+    let expense;
+    const currency = currentUser.currency;
+    const path = req.path
+    if (type === 'getId') {
+        expense = currentUser.budget.id(req.params.expenseId)
+    } else {
+        expense = currentUser.budget;
+    }
+    return { username, expense, currency, path, currentUser }
+}
+
 module.exports = {
     calculateVariableCost,
     currencies,
     monthFromLocale,
     pieChart,
-    getSchedulesFormatted
+    getSchedulesFormatted,
+    getUserData
 };

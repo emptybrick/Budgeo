@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user.js');
-const { calculateVariableCost, monthFromLocale, pieChart, getSchedulesFormatted } = require('../public/js/serverUtils.js');
+const { calculateVariableCost, monthFromLocale, pieChart, getSchedulesFormatted, getUserData } = require('../public/js/serverUtils.js');
 const parseCurrency = require('parsecurrency');
 
 // parseCurrency is used to parse currency strings into numbers
@@ -11,11 +11,7 @@ const parseCurrency = require('parsecurrency');
 
 router.get('/', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
-        const username = currentUser.username
-        const expense = currentUser.budget;
-        const currency = currentUser.currency;
-        const path = req.path
+        const { username, expense, currency, path } = await getUserData(User, req)
         res.render('budget/index.ejs', { expense, path, username, currency })
     } catch (error) {
         console.log(error)
@@ -25,10 +21,7 @@ router.get('/', async (req, res) => {
 
 router.get('/new', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
-        const expense = currentUser.budget
-        const currency = currentUser.currency
-        const path = req.path
+        const { expense, currency, path } = await getUserData(User, req)
         res.render('budget/new.ejs', { path, expense, currency });
     } catch (error) {
         console.log(error);
@@ -38,16 +31,12 @@ router.get('/new', async (req, res) => {
 
 router.get('/data', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
-        const username = currentUser.username
-        const expense = currentUser.budget;
-        const currency = currentUser.currency
-        const path = req.path
+        const { username, expense, currency, path } = await getUserData(User, req)
         const pieData = await pieChart(expense)
-        const { weeklyTotal, weeklyHigh, weeklyLow } = getSchedulesFormatted(expense, 'Weekly', currency)
-        const { monthlyTotal, monthlyHigh, monthlyLow } = getSchedulesFormatted(expense, 'Monthly', currency)
-        const { quarterlyTotal, quarterlyHigh, quarterlyLow } = getSchedulesFormatted(expense, 'Quarterly', currency)
-        const { annuallyTotal, annuallyHigh, annuallyLow } = getSchedulesFormatted(expense, 'Annually', currency)
+        const { formattedTotal: weeklyTotal, formattedHigh: weeklyHigh, formattedLow: weeklyLow } = getSchedulesFormatted(expense, 'Weekly', currency)
+        const { formattedTotal: monthlyTotal, formattedHigh: monthlyHigh, formattedLow: monthlyLow } = getSchedulesFormatted(expense, 'Monthly', currency)
+        const { formattedTotal: quarterlyTotal, formattedHigh: quarterlyHigh, formattedLow: quarterlyLow } = getSchedulesFormatted(expense, 'Quarterly', currency)
+        const { formattedTotal: annuallyTotal, formattedHigh: annuallyHigh, formattedLow: annuallyLow } = getSchedulesFormatted(expense, 'Annually', currency)
         const scheduleData = {
             weeklyTotal, weeklyHigh, weeklyLow, monthlyTotal, monthlyHigh, monthlyLow,
             quarterlyTotal, quarterlyHigh, quarterlyLow, annuallyTotal, annuallyHigh, annuallyLow
@@ -61,7 +50,7 @@ router.get('/data', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
+        const { currentUser } = await getUserData(User, req)
         if (!req.body.cost) {
             req.body.cost = '0';
         }
@@ -110,11 +99,7 @@ router.post('/', async (req, res) => {
 
 router.get('/:expenseId', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
-        const expense = currentUser.budget.id(req.params.expenseId)
-        const currency = currentUser.currency
-        const path = req.path
-
+        const { expense, currency, path } = await getUserData(User, req, 'getId')
         if (!expense) {
             return res.status(404).send('Expense not found');
         }
@@ -128,9 +113,7 @@ router.get('/:expenseId', async (req, res) => {
 
 router.delete('/:expenseId', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
-        const expense = currentUser.budget.id(req.params.expenseId)
-
+        const { expense, currentUser } = await getUserData(User, req, 'getId')
         if (!expense) {
             return res.status(404).send('Expense not found');
         }
@@ -146,11 +129,7 @@ router.delete('/:expenseId', async (req, res) => {
 
 router.get('/:expenseId/edit', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
-        const expense = currentUser.budget.id(req.params.expenseId)
-        const currency = currentUser.currency
-        const path = req.path
-
+        const { expense, currency, path } = await getUserData(User, req, 'getId')
         if (!expense) {
             return res.status(404).send('Expense not found');
         }
@@ -164,9 +143,7 @@ router.get('/:expenseId/edit', async (req, res) => {
 
 router.put('/:expenseId', async (req, res) => {
     try {
-        const currentUser = await User.findById(req.session.user._id)
-        const expense = currentUser.budget.id(req.params.expenseId)
-
+        const { expense, currentUser } = await getUserData(User, req, 'getId')
         if (!expense) {
             return res.status(404).send('Expense not found');
         }
