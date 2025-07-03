@@ -36,26 +36,26 @@
                 <strong>
                   <%= expense.costType==="Variable" ? "Monthly Cost" : "Cost" %>:
                 </strong>
-                <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                  currentUser.currency.code }).format(expense.cost) %>
+                <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
+                  currency.code }).format(expense.cost) %>
               </p>
               <% if (expense.costType==="Variable" ) { %>
                 <p>
                   <strong>Estimation:</strong>
-                  <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                    currentUser.currency.code }).format(expense.costLow) %> to
-                    <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                      currentUser.currency.code }).format(expense.costHigh) %>
+                  <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
+                    currency.code }).format(expense.costLow) %> to
+                    <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
+                      currency.code }).format(expense.costHigh) %>
                 </p>
                 <p>
                   <strong>Highest Payment:</strong>
-                  <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                    currentUser.currency.code }).format(expense.historical.reduce((max, entry)=> entry.cost > max.cost ?
+                  <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
+                    currency.code }).format(expense.historical.reduce((max, entry)=> entry.cost > max.cost ?
                     entry : max, expense.historical[0]).cost) %>
                 </p>
                 <strong>Lowest Payment:</strong>
-                <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                  currentUser.currency.code }).format(expense.historical.reduce((min, entry)=> entry.cost < min.cost ?
+                <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
+                  currency.code }).format(expense.historical.reduce((min, entry)=> entry.cost < min.cost ?
                     entry : min, expense.historical[0]).cost) %>
                     </p>
             
@@ -100,12 +100,12 @@
                           <% expense.historical.forEach((payment)=> { %>
                             <tr>
                               <td>
-                                <%= payment.date.toLocaleDateString(currentUser.currency.locale, { year: 'numeric' ,
+                                <%= payment.date.toLocaleDateString(currency.locale, { year: 'numeric' ,
                                   month: 'long' , timeZone: 'UTC' , }) %>
                               </td>
                               <td>
-                                <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                                  currentUser.currency.code }).format(payment.cost) %>
+                                <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
+                                  currency.code }).format(payment.cost) %>
                               </td>
                             </tr>
                             <% }) %>

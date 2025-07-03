@@ -68,8 +68,8 @@
                     <label class="label" for="cost">Cost:</label>
                     <input class="input cost-input" style="width: 100%; min-width: 0" type="text" name="cost"
                       id="fixed-cost" min="0"
-                      value="<%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency', currency: currentUser.currency.code }).format(expense.cost) %>"
-                      placeholder="<%= currentUser.currency.placeholder %>" required />
+                      value="<%= Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(expense.cost) %>"
+                      placeholder="<%= currency.placeholder %>" required />
                   </div>
                 </div>
                 <input type="hidden" name="costType" value="Fixed" />
@@ -156,7 +156,7 @@
                                   <div class="control">
                                     <input class="input has-text-centered" type="text"
                                       name="historical[<%= index %>][month]" id="month[<%= index %>]"
-                                      value="<%= payment.date.toLocaleString(currentUser.currency.locale, { month: 'long', timeZone: 'UTC' }) %>"
+                                      value="<%= payment.date.toLocaleString(currency.locale, { month: 'long', timeZone: 'UTC' }) %>"
                                       readonly style="width: 130px; text-align: center;" tabindex="-1" />
                                   </div>
                                   <div class="control">
@@ -171,8 +171,8 @@
                             <td class="has-text-centered" style="vertical-align: middle;">
                               <input class="input cost-input has-text-centered" type="text"
                                 name="historical[<%= index %>][cost]" id="cost[<%= index %>]"
-                                value="<%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency', currency: currentUser.currency.code }).format(payment.cost) %>"
-                                min="0" placeholder="<%= currentUser.currency.placeholder %>" required readonly
+                                value="<%= Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code }).format(payment.cost) %>"
+                                min="0" placeholder="<%= currency.placeholder %>" required readonly
                                 style="margin: 0 auto; display: block;" />
                             </td>
                             <td class="has-text-centered" style="vertical-align: middle;">
@@ -214,7 +214,7 @@
     </section>
     <script>
       window.currency = JSON.parse(
-        `<%- JSON.stringify(currentUser.currency) %>`
+        `<%- JSON.stringify(currency) %>`
       );
       window.expense = JSON.parse(
         `<%- JSON.stringify(expense) %>`

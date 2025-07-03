@@ -81,7 +81,7 @@
                 <div class="control" style="flex: 2;">
                   <label class="label" for="cost">Cost:</label>
                   <input class="input cost-input" style="width: 100%; min-width: 0" type="text" name="cost"
-                    id="fixed-cost" min="0" placeholder="<%= currentUser.currency.placeholder %>" required />
+                    id="fixed-cost" min="0" placeholder="<%= currency.placeholder %>" required />
                 </div>
               </div>
               <input type="hidden" name="costType" value="Fixed" />
@@ -168,7 +168,7 @@
                                 <option value="" disabled selected>Month</option>
                                 <% for (let i=0; i < 12; i++) { %>
                                   <option value="<%= i + 1 %>">
-                                    <%= (new Date(0, i)).toLocaleString(currentUser.currency.locale, { month: 'long' ,
+                                    <%= (new Date(0, i)).toLocaleString(currency.locale, { month: 'long' ,
                                       timeZone: 'UTC' }) %>
                                   </option>
                                   <% } %>
@@ -194,7 +194,7 @@
                     </td>
                     <td>
                       <input class="input cost-input has-text-centered" id="cost[0]" type="text"
-                        name="historical[0][cost]" min="0" placeholder="<%= currentUser.currency.placeholder %>"
+                        name="historical[0][cost]" min="0" placeholder="<%= currency.placeholder %>"
                         required />
                     </td>
                     <td class="has-text-centered align-middle" style="vertical-align: middle">
@@ -236,9 +236,9 @@
     </section>
     <script>
       window.currency = JSON.parse(
-        `<%- JSON.stringify(currentUser.currency) %>`
+        `<%- JSON.stringify(currency) %>`
       );
-      window.expense = JSON.parse(`<%- JSON.stringify(currentUser.budget) %>`);
+      window.expense = JSON.parse(`<%- JSON.stringify(expense) %>`);
     </script>
     <script defer src="/js/clientUtils.js"></script>
 </body>

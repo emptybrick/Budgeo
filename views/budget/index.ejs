@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>
-    <%= user.username.endsWith('s') ? user.username + "' Budget" : user.username + "'s Budget" %>
+    <%= username.endsWith('s') ? username + "' Budget" : username + "'s Budget" %>
   </title>
   <link rel="icon" href="/images/logo-white.png" type="image/png" />
   <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
@@ -34,7 +34,7 @@
               </div>
             </div>
             <div class="columns is-multiline" id="expenses-list">
-              <% expenses.forEach((expense)=>{ %>
+              <% expense.forEach((expense)=>{ %>
                 <div class="column expense-item"
                   data-type="<%= expense.type %>">
                   <div class="card">
@@ -54,8 +54,8 @@
                       </p>
                       <p>
                         <strong>Cost:</strong>
-                        <%= Intl.NumberFormat(currentUser.currency.locale, { style: 'currency' , currency:
-                          currentUser.currency.code }).format(expense.cost) %>
+                        <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
+                          currency.code }).format(expense.cost) %>
                       </p>
                     </div>
                       <div class="field" style="margin-top: 1rem;">

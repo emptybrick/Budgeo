@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user.js');
-const { calculateVariableCost, monthFromLocale } = require('../public/js/serverUtils.js');
+const { calculateVariableCost, monthFromLocale, pieChart, getSchedulesFormatted } = require('../public/js/serverUtils.js');
 const parseCurrency = require('parsecurrency');
-const { parse } = require('dotenv');
 
 // parseCurrency is used to parse currency strings into numbers
 // Example usage:
@@ -13,9 +12,11 @@ const { parse } = require('dotenv');
 router.get('/', async (req, res) => {
     try {
         const currentUser = await User.findById(req.session.user._id)
-        const expenses = currentUser.budget;
+        const username = currentUser.username
+        const expense = currentUser.budget;
+        const currency = currentUser.currency;
         const path = req.path
-        res.render('budget/index.ejs', { expenses, currentUser, path })
+        res.render('budget/index.ejs', { expense, path, username, currency })
     } catch (error) {
         console.log(error)
         res.redirect('/')
@@ -25,8 +26,10 @@ router.get('/', async (req, res) => {
 router.get('/new', async (req, res) => {
     try {
         const currentUser = await User.findById(req.session.user._id)
+        const expense = currentUser.budget
+        const currency = currentUser.currency
         const path = req.path
-        res.render('budget/new.ejs', { currentUser, path });
+        res.render('budget/new.ejs', { path, expense, currency });
     } catch (error) {
         console.log(error);
         res.redirect('/');
@@ -36,9 +39,20 @@ router.get('/new', async (req, res) => {
 router.get('/data', async (req, res) => {
     try {
         const currentUser = await User.findById(req.session.user._id)
+        const username = currentUser.username
         const expense = currentUser.budget;
+        const currency = currentUser.currency
         const path = req.path
-        res.render('budget/data.ejs', { currentUser, expense, path });
+        const pieData = await pieChart(expense)
+        const { weeklyTotal, weeklyHigh, weeklyLow } = getSchedulesFormatted(expense, 'Weekly', currency)
+        const { monthlyTotal, monthlyHigh, monthlyLow } = getSchedulesFormatted(expense, 'Monthly', currency)
+        const { quarterlyTotal, quarterlyHigh, quarterlyLow } = getSchedulesFormatted(expense, 'Quarterly', currency)
+        const { annuallyTotal, annuallyHigh, annuallyLow } = getSchedulesFormatted(expense, 'Annually', currency)
+        const scheduleData = {
+            weeklyTotal, weeklyHigh, weeklyLow, monthlyTotal, monthlyHigh, monthlyLow,
+            quarterlyTotal, quarterlyHigh, quarterlyLow, annuallyTotal, annuallyHigh, annuallyLow
+        }
+        res.render('budget/data.ejs', { expense, path, pieData, scheduleData, username, currency });
     } catch (error) {
         console.log(error);
         res.redirect(`/users/${req.session.user._id}/budget`);
@@ -98,13 +112,14 @@ router.get('/:expenseId', async (req, res) => {
     try {
         const currentUser = await User.findById(req.session.user._id)
         const expense = currentUser.budget.id(req.params.expenseId)
+        const currency = currentUser.currency
         const path = req.path
 
         if (!expense) {
             return res.status(404).send('Expense not found');
         }
 
-        res.render('budget/show.ejs', { expense, currentUser, path });
+        res.render('budget/show.ejs', { expense, path, currency });
     } catch (error) {
         console.log(error);
         res.redirect(`/users/${req.session.user._id}/budget`);
@@ -133,13 +148,14 @@ router.get('/:expenseId/edit', async (req, res) => {
     try {
         const currentUser = await User.findById(req.session.user._id)
         const expense = currentUser.budget.id(req.params.expenseId)
+        const currency = currentUser.currency
         const path = req.path
 
         if (!expense) {
             return res.status(404).send('Expense not found');
         }
 
-        res.render('budget/edit.ejs', { expense, currentUser, path });
+        res.render('budget/edit.ejs', { expense, currency, path });
     } catch (error) {
         console.log(error);
         res.redirect(`/users/${req.session.user._id}/budget`);

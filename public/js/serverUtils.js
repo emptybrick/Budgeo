@@ -115,8 +115,188 @@ function monthFromLocale(monthName, locale) {
     return months.indexOf(monthName);
 }
 
+function changeCost(payment, schedule, newSchedule) {
+    switch (schedule) {
+        case "Weekly":
+            payment = payment * 52;
+            break;
+        case "Bi-Weekly":
+            payment = payment * 26;
+            break;
+        case "Monthly":
+            payment = payment * 12;
+            break;
+        case "Bi-Monthly":
+            payment = payment * 6;
+            break;
+        case "Quarterly":
+            payment = payment * 4;
+            break;
+        case "Semi-Annually":
+            payment = payment * 2;
+            break;
+        case "Annually":
+            break;
+    }
+    switch (newSchedule) {
+        case "Weekly":
+            payment = (payment / 52).toFixed(2);
+            break;
+        case "Monthly":
+            payment = (payment / 12).toFixed(2);
+            break;
+        case "Quarterly":
+            payment = (payment / 4).toFixed(2);
+            break;
+        case "Annually":
+            break;
+    }
+    return payment;
+}
+
+async function pieChart(expense) {
+    const newExpenses = JSON.parse(JSON.stringify(expense));
+    newExpenses.forEach((expense) => {
+        expense.cost = Number(
+            changeCost(expense.cost, expense.schedule, "Monthly")
+        );
+    });
+
+    const creditCards = newExpenses.filter(
+        (expense) => expense.type === "Credit Card"
+    );
+    const loans = newExpenses.filter((expense) => expense.type === "Loan");
+    const utilities = newExpenses.filter((expense) => expense.type === "Utility");
+    const subscriptions = newExpenses.filter(
+        (expense) => expense.type === "Subscription"
+    );
+    const others = newExpenses.filter((expense) => expense.type === "Other");
+
+    const creditCardsTotal = creditCards.reduce(
+        (sum, expense) => sum + expense.cost,
+        0
+    );
+    const loansTotal = loans.reduce((sum, expense) => sum + expense.cost, 0);
+    const utilitiesTotal = utilities.reduce(
+        (sum, expense) => sum + expense.cost,
+        0
+    );
+    const subscriptionsTotal = subscriptions.reduce(
+        (sum, expense) => sum + expense.cost,
+        0
+    );
+    const othersTotal = others.reduce((sum, expense) => sum + expense.cost, 0);
+
+    const pieData = [
+        { label: "Credit Cards", value: creditCardsTotal, color: "#3D5A77" },
+        { label: "Loans", value: loansTotal, color: "#88A1BA" },
+        { label: "Utilities", value: utilitiesTotal, color: "#7F8E9D" },
+        { label: "Subscriptions", value: subscriptionsTotal, color: "#23486E" },
+        { label: "Other", value: othersTotal, color: "#436E99" },
+    ];
+
+    return pieData 
+}
+
+// not so much changeSchedule, as getSchedulesFormatted on server only used in /data
+function getSchedulesFormatted(expense, type, currency) {
+    const newExpense = JSON.parse(JSON.stringify(expense));
+    newExpense.forEach((expense) => {
+        switch (type) {
+            case "Weekly":
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost;
+                    expense.costLow = expense.cost - expense.costLow;
+                    expense.costHigh = Number(
+                        changeCost(expense.costHigh, "Monthly", "Weekly")
+                    );
+                    expense.costLow = Number(
+                        changeCost(expense.costLow, "Monthly", "Weekly")
+                    );
+                }
+                expense.cost = Number(
+                    changeCost(expense.cost, expense.schedule, "Weekly")
+                );
+                break;
+            case "Monthly":
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost;
+                    expense.costLow = expense.cost - expense.costLow;
+                    expense.costHigh = Number(
+                        changeCost(expense.costHigh, "Monthly", "Monthly")
+                    );
+                    expense.costLow = Number(
+                        changeCost(expense.costLow, "Monthly", "Monthly")
+                    );
+                }
+                expense.cost = Number(
+                    changeCost(expense.cost, expense.schedule, "Monthly")
+                );
+                break;
+            case "Quarterly":
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost;
+                    expense.costLow = expense.cost - expense.costLow;
+                    expense.costHigh = Number(
+                        changeCost(expense.costHigh, "Monthly", "Quarterly")
+                    );
+                    expense.costLow = Number(
+                        changeCost(expense.costLow, "Monthly", "Quarterly")
+                    );
+                }
+                expense.cost = Number(
+                    changeCost(expense.cost, expense.schedule, "Quarterly")
+                );
+                break;
+            case "Annually":
+                if (expense.costHigh > 0 && expense.costLow > 0) {
+                    expense.costHigh = expense.costHigh - expense.cost;
+                    expense.costLow = expense.cost - expense.costLow;
+                    expense.costHigh = Number(
+                        changeCost(expense.costHigh, "Monthly", "Annually")
+                    );
+                    expense.costLow = Number(
+                        changeCost(expense.costLow, "Monthly", "Annually")
+                    );
+                }
+                expense.cost = Number(
+                    changeCost(expense.cost, expense.schedule, "Annually")
+                );
+                break;
+        }
+    });
+    const newTotal = newExpense.reduce((sum, expense) => sum + expense.cost, 0);
+    const newTotalHigh =
+        newExpense.reduce(
+            (sum, expense) => sum + (expense.costHigh > 0 ? expense.costHigh : 0),
+            0
+        ) + newTotal;
+    const newTotalLow =
+        newTotal -
+        newExpense.reduce(
+            (sum, expense) => sum + (expense.costLow > 0 ? expense.costLow : 0),
+            0
+        );
+    const formattedTotal = Intl.NumberFormat(currency.locale, {
+        style: "currency",
+        currency: currency.code,
+    }).format(newTotal);
+    const formattedHigh = Intl.NumberFormat(currency.locale, {
+        style: "currency",
+        currency: currency.code,
+    }).format(newTotalHigh);
+    const formattedLow = Intl.NumberFormat(currency.locale, {
+        style: "currency",
+        currency: currency.code,
+    }).format(newTotalLow);
+
+    return { formattedTotal, formattedHigh, formattedLow }
+}
+
 module.exports = {
     calculateVariableCost,
     currencies,
-    monthFromLocale
+    monthFromLocale,
+    pieChart,
+    getSchedulesFormatted
 };

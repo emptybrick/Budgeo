@@ -1,6 +1,5 @@
-// client side needs access to expense(= currentUser.budget)
+// client side needs access to expense(= currentUser.budget) - /new, /data, /edit
 // client side needs access to currency(= currentUser.currency)
-
 
 // static const variables set
 const nextForm = document.getElementById("initial-form");
@@ -358,7 +357,7 @@ const inputNames = [
     },
 ];
 
-// stays client side
+// client side
 // script to change error messages for input and select fields
 function updateErrorMessages() {
     inputNames.forEach((input) => {
@@ -373,7 +372,7 @@ function updateErrorMessages() {
     });
 };
 
-//stays client side
+// client side
 // updates error message for new rows as added
 function addErrorMessageListeners(row) {
     inputNames.forEach((input) => {
@@ -391,144 +390,84 @@ function addErrorMessageListeners(row) {
 
 // goes with changeschedule function can move to server
 // simple move no changes needed
-function changeCost(payment, schedule, newSchedule) {
-    switch (schedule) {
-        case "Weekly":
-            payment = payment * 52;
-            break;
-        case "Bi-Weekly":
-            payment = payment * 26;
-            break;
-        case "Monthly":
-            payment = payment * 12;
-            break;
-        case "Bi-Monthly":
-            payment = payment * 6;
-            break;
-        case "Quarterly":
-            payment = payment * 4;
-            break;
-        case "Semi-Annually":
-            payment = payment * 2;
-            break;
-        case "Annually":
-            break;
-    }
-    switch (newSchedule) {
-        case "Weekly":
-            payment = (payment / 52).toFixed(2);
-            break;
-        case "Monthly":
-            payment = (payment / 12).toFixed(2);
-            break;
-        case "Quarterly":
-            payment = (payment / 4).toFixed(2);
-            break;
-        case "Annually":
-            break;
-    }
-    return payment;
-}
+// function changeCost(payment, schedule, newSchedule) {
+//     switch (schedule) {
+//         case "Weekly":
+//             payment = payment * 52;
+//             break;
+//         case "Bi-Weekly":
+//             payment = payment * 26;
+//             break;
+//         case "Monthly":
+//             payment = payment * 12;
+//             break;
+//         case "Bi-Monthly":
+//             payment = payment * 6;
+//             break;
+//         case "Quarterly":
+//             payment = payment * 4;
+//             break;
+//         case "Semi-Annually":
+//             payment = payment * 2;
+//             break;
+//         case "Annually":
+//             break;
+//     }
+//     switch (newSchedule) {
+//         case "Weekly":
+//             payment = (payment / 52).toFixed(2);
+//             break;
+//         case "Monthly":
+//             payment = (payment / 12).toFixed(2);
+//             break;
+//         case "Quarterly":
+//             payment = (payment / 4).toFixed(2);
+//             break;
+//         case "Annually":
+//             break;
+//     }
+//     return payment;
+// }
 
 // can have server generate these values and send to client to switch as needed
 // also updates elements innerHTML -- need to figure out
+// need to pass all 4 schedule data sets from server
 function changeSchedule(type) {
     const totalCosts = document.querySelector("#total-cost");
     const estimatedCosts = document.querySelector("#estimate-cost");
+    let message = "";
+    let confidenceMessage = "";
+    let formattedTotal;
+    let formattedHigh;
+    let formattedLow;
+
     if (!totalCosts || !estimatedCosts) {
         return;
     }
-    const newExpense = JSON.parse(JSON.stringify(expense));
-    let message = "";
-    let confidenceMessage = "";
-    newExpense.forEach((expense) => {
-        switch (type) {
-            case "Weekly":
-                if (expense.costHigh > 0 && expense.costLow > 0) {
-                    expense.costHigh = expense.costHigh - expense.cost;
-                    expense.costLow = expense.cost - expense.costLow;
-                    expense.costHigh = Number(
-                        changeCost(expense.costHigh, "Monthly", "Weekly")
-                    );
-                    expense.costLow = Number(
-                        changeCost(expense.costLow, "Monthly", "Weekly")
-                    );
-                }
-                expense.cost = Number(
-                    changeCost(expense.cost, expense.schedule, "Weekly")
-                );
-                break;
-            case "Monthly":
-                if (expense.costHigh > 0 && expense.costLow > 0) {
-                    expense.costHigh = expense.costHigh - expense.cost;
-                    expense.costLow = expense.cost - expense.costLow;
-                    expense.costHigh = Number(
-                        changeCost(expense.costHigh, "Monthly", "Monthly")
-                    );
-                    expense.costLow = Number(
-                        changeCost(expense.costLow, "Monthly", "Monthly")
-                    );
-                }
-                expense.cost = Number(
-                    changeCost(expense.cost, expense.schedule, "Monthly")
-                );
-                break;
-            case "Quarterly":
-                if (expense.costHigh > 0 && expense.costLow > 0) {
-                    expense.costHigh = expense.costHigh - expense.cost;
-                    expense.costLow = expense.cost - expense.costLow;
-                    expense.costHigh = Number(
-                        changeCost(expense.costHigh, "Monthly", "Quarterly")
-                    );
-                    expense.costLow = Number(
-                        changeCost(expense.costLow, "Monthly", "Quarterly")
-                    );
-                }
-                expense.cost = Number(
-                    changeCost(expense.cost, expense.schedule, "Quarterly")
-                );
-                break;
-            case "Annually":
-                if (expense.costHigh > 0 && expense.costLow > 0) {
-                    expense.costHigh = expense.costHigh - expense.cost;
-                    expense.costLow = expense.cost - expense.costLow;
-                    expense.costHigh = Number(
-                        changeCost(expense.costHigh, "Monthly", "Annually")
-                    );
-                    expense.costLow = Number(
-                        changeCost(expense.costLow, "Monthly", "Annually")
-                    );
-                }
-                expense.cost = Number(
-                    changeCost(expense.cost, expense.schedule, "Annually")
-                );
-                break;
-        }
-    });
-    const newTotal = newExpense.reduce((sum, expense) => sum + expense.cost, 0);
-    const newTotalHigh =
-        newExpense.reduce(
-            (sum, expense) => sum + (expense.costHigh > 0 ? expense.costHigh : 0),
-            0
-        ) + newTotal;
-    const newTotalLow =
-        newTotal -
-        newExpense.reduce(
-            (sum, expense) => sum + (expense.costLow > 0 ? expense.costLow : 0),
-            0
-        );
-    const formattedTotal = Intl.NumberFormat(currency.locale, {
-        style: "currency",
-        currency: currency.code,
-    }).format(newTotal);
-    const formattedHigh = Intl.NumberFormat(currency.locale, {
-        style: "currency",
-        currency: currency.code,
-    }).format(newTotalHigh);
-    const formattedLow = Intl.NumberFormat(currency.locale, {
-        style: "currency",
-        currency: currency.code,
-    }).format(newTotalLow);
+
+    switch (type) {
+        case "Weekly":
+            formattedTotal = scheduleData.weeklyTotal;
+            formattedHigh = scheduleData.weeklyHigh;
+            formattedLow = scheduleData.weeklyLow;
+            break;
+        case "Monthly":
+            formattedTotal = scheduleData.monthlyTotal;
+            formattedHigh = scheduleData.monthlyHigh;
+            formattedLow = scheduleData.monthlyLow;
+            break;
+        case "Quarterly":
+            formattedTotal = scheduleData.quarterlyTotal;
+            formattedHigh = scheduleData.quarterlyHigh;
+            formattedLow = scheduleData.quarterlyLow;
+            break;
+        case "Annually":
+            formattedTotal = scheduleData.annuallyTotal;
+            formattedHigh = scheduleData.annuallyHigh;
+            formattedLow = scheduleData.annuallyLow;
+            break;
+    }
+
     switch (type) {
         case "Weekly":
             message = `<span class="has-text-weight-bold">Weekly Estimate: </span> ${formattedTotal}`;
@@ -549,51 +488,13 @@ function changeSchedule(type) {
 }
 
 // can have server generate everything besides calling for the canvas and inputting new chart
-async function pieChart() {
+// used only on data.ejs or /data
+async function pieChart(pieData) {
     const chartElement = document.getElementById("pie-chart");
     if (!chartElement) {
         return;
     }
-    const newExpenses = JSON.parse(JSON.stringify(expense));
-    newExpenses.forEach((expense) => {
-        expense.cost = Number(
-            changeCost(expense.cost, expense.schedule, "Monthly")
-        );
-    });
-
-    const creditCards = newExpenses.filter(
-        (expense) => expense.type === "Credit Card"
-    );
-    const loans = newExpenses.filter((expense) => expense.type === "Loan");
-    const utilities = newExpenses.filter((expense) => expense.type === "Utility");
-    const subscriptions = newExpenses.filter(
-        (expense) => expense.type === "Subscription"
-    );
-    const others = newExpenses.filter((expense) => expense.type === "Other");
-
-    const creditCardsTotal = creditCards.reduce(
-        (sum, expense) => sum + expense.cost,
-        0
-    );
-    const loansTotal = loans.reduce((sum, expense) => sum + expense.cost, 0);
-    const utilitiesTotal = utilities.reduce(
-        (sum, expense) => sum + expense.cost,
-        0
-    );
-    const subscriptionsTotal = subscriptions.reduce(
-        (sum, expense) => sum + expense.cost,
-        0
-    );
-    const othersTotal = others.reduce((sum, expense) => sum + expense.cost, 0);
-
-    const pieData = [
-        { label: "Credit Cards", value: creditCardsTotal, color: "#3D5A77" },
-        { label: "Loans", value: loansTotal, color: "#88A1BA" },
-        { label: "Utilities", value: utilitiesTotal, color: "#7F8E9D" },
-        { label: "Subscriptions", value: subscriptionsTotal, color: "#23486E" },
-        { label: "Other", value: othersTotal, color: "#436E99" },
-    ];
-
+  
     new Chart(chartElement, {
         type: "pie",
         data: {
@@ -629,4 +530,4 @@ async function pieChart() {
 updatePlaceholders(currency);
 updateErrorMessages();
 changeSchedule("Monthly");
-pieChart();
+pieChart(pieData);
