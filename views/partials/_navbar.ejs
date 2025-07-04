@@ -1,5 +1,27 @@
 <!-- views/partials/_navbar.ejs -->
 <style>
+  body {
+    background-color: #e0e0e0 !important;
+  }
+
+  .box {
+    background-color: #cdd1d7 !important;
+    border: 2px solid #8e8e8e !important;
+    /* box-shadow: #34495e; */
+  }
+
+  .card, .select select, .input, .textarea, .table {
+    border: 2px solid #80878b !important;
+  }
+
+  .table td, .table th {
+    border: 1px solid #868f96 !important;
+  }
+
+  .table {
+    border-radius: .4em !important;
+  }
+
   .form-step {
     display: none;
   }
@@ -18,14 +40,22 @@
   .select select.is-focused,
   .select select:active,
   .select select:focus,
+  .select select::after,
+  .select select::before,
   .textarea:active,
   .textarea:focus {
     border-color: #34495e !important;
     box-shadow: 0 0 0 .125em #34495e33 !important;
   }
 
-  .add-row-button,
-  .back-form-button {
+  .select:not(.is-multiple):not(.is-loading)::after {
+    border-color: #5165ad;
+    right: 1.125em;
+    z-index: 4;
+}
+
+  .button.is-inverted {
+    background-color: #f7f7f7 !important;
     border: .15rem solid #34495e !important;
   }
 
@@ -78,6 +108,12 @@
 
     .data-estimate-button {
       font-size: 1rem !important;
+    }
+  }
+
+  @media screen and (width <= 520px) {
+    .field.is-grouped.month-year-group {
+      flex-direction: column;
     }
   }
 
@@ -183,7 +219,7 @@
 </style>
 <nav class="navbar" role="navigation" aria-label="main navigation">
   <div class="navbar-brand">
-    <a href="/"><img class="navbar-item" style="max-height: 60px" src="/images/logo-with-text-white.png" /></a>
+    <a href="/"><img class="navbar-item" style="max-height: 60px" src="/images/logo-with-text-white.png" alt="logo in white with text" /></a>
 
     <a class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-bar-menu">
       <span></span>
@@ -195,10 +231,10 @@
     <div class="navbar-end">
       <% if(user) { %>
         <a class="navbar-item has-text-weight-bold has-text-white link"
-          href="/users/<%= user._id %>/budget/data">Financial
+          href="/budgeo/data">Financial
           Data</a>
         <a class="navbar-item has-text-weight-bold has-text-white link"
-          href="/users/<%= user._id %>/budget">Expenses</a>
+          href="/budgeo">Expenses</a>
         <a class="navbar-item has-text-weight-bold has-text-white link" href="/auth/sign-out">Sign Out</a>
         <% } else if (path==='/sign-up' || path==='/' ) { %>
           <a class="navbar-item has-text-weight-bold has-text-white link" href="/auth/sign-in">Sign In</a>

@@ -11,7 +11,7 @@
 
 <body>
   <%- include('../partials/_navbar.ejs') %>
-    <section class="section">
+    <section class="section" style="min-height: 100vh">
       <div class="container">
         <h1 class="title is-3 has-text-centered">Sign in</h1>
         <form action="/auth/sign-in" method="POST" class="box" style="max-width: 400px; margin: 0 auto">
@@ -26,6 +26,11 @@
             <div class="control">
               <input class="input" type="password" name="password" id="password" required />
             </div>
+          </div>
+          <div class="notification is-primary has-text-centered" id="failed-login-message" <%=showMessage ? ''
+            : 'hidden' %>>
+            <button class="delete" type="button" onclick="this.parentNode.hidden=true"></button>
+            Login failed. Please try again.
           </div>
           <div class="field is-grouped is-grouped-centered">
             <div class="control">

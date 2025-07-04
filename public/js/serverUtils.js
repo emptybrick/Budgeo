@@ -1,5 +1,4 @@
 // and array of the top 20 used currencies that a user can choose at signup
-// this could become related data...
 const currencies = [
     { name: 'US Dollar', code: 'USD', locale: 'en-US', symbol: '$', symbolPosition: 'front', placeholder: '0.00' },
     { name: 'Euro', code: 'EUR', locale: 'de-DE', symbol: '€', symbolPosition: 'back', placeholder: '0.00' },
@@ -21,6 +20,53 @@ const currencies = [
     { name: 'Turkish Lira', code: 'TRY', locale: 'tr-TR', symbol: '₺', symbolPosition: 'front', placeholder: '0.00' },
     { name: 'New Zealand Dollar', code: 'NZD', locale: 'en-NZ', symbol: 'NZ$', symbolPosition: 'front', placeholder: '0.00' }
 ];
+
+// gets user data for server
+async function getUserData(User, req, type) {
+    const currentUser = await User.findById(req.session.user._id)
+    const username = currentUser.username
+    const currency = currentUser.currency;
+    const path = req.path
+    let expense;
+    if (type === 'getId') {
+        expense = currentUser.budget.id(req.params.expenseId)
+    } else {
+        expense = currentUser.budget;
+    }
+    return { username, expense, currency, path, currentUser }
+}
+
+// simple function that gets the string of the month in a users locale and converts to number
+// works by generating a complete list of month names in locale then finding index of the passed
+// month in the array which corresponds to the 0-11 new Date method
+function monthFromLocale(monthInLocale, locale) {
+    let months = [];
+    for (let i = 0; i < 12; i++) {
+        const month = new Date(0, i).toLocaleString(locale, {
+            month: "long",
+            timeZone: "UTC",
+        });
+        months.push(month);
+    }
+    return months.indexOf(monthInLocale);
+}
+
+// same as the monthFromLocale returns the current year in a number server can use
+// works by comparing 2 arrays 1 server uses and 1 in client locale 
+function yearFromLocale(yearInLocale, locale) {
+    const currentYear = new Date().getUTCFullYear()
+    let yearOptions = [];
+    let formattedYearOptions = [];
+    for (let year = currentYear; year >= currentYear - 4; year--) {
+        yearOptions.push(year)
+        formattedYearOptions.push(new Date(year, 0).toLocaleString(locale, {
+            year: "numeric",
+            timeZone: "UTC",
+        }));
+    }
+    const yearLocaleIndex = formattedYearOptions.indexOf(yearInLocale)
+    return yearOptions[yearLocaleIndex]
+}
 
 // calculates the historical payment data received from client and bootstraps
 // to provide a robust estimate of monthly expenditures
@@ -105,21 +151,6 @@ function calculateVariableCost(historical) {
         high: ciHigh
     }
 
-}
-
-// if server recieves a string for month name instead of a number
-// it checks that string against a generated array of user locale
-// months and gets the indexOf and returns for the proper value server needs
-function monthFromLocale(monthName, locale) {
-    let months = [];
-    for (let i = 0; i < 12; i++) {
-        const month = new Date(0, i).toLocaleString(locale, {
-            month: 'long',
-            timeZone: 'UTC'
-        })
-        months.push(month)
-    }
-    return months.indexOf(monthName);
 }
 
 // used in conjuction with schedule and piechart functions to format payments as needed
@@ -303,25 +334,11 @@ function getSchedulesFormatted(expense, type, currency) {
     return { formattedTotal, formattedHigh, formattedLow }
 }
 
-// gets user data for server
-async function getUserData(User, req, type) {
-    const currentUser = await User.findById(req.session.user._id)
-    const username = currentUser.username
-    let expense;
-    const currency = currentUser.currency;
-    const path = req.path
-    if (type === 'getId') {
-        expense = currentUser.budget.id(req.params.expenseId)
-    } else {
-        expense = currentUser.budget;
-    }
-    return { username, expense, currency, path, currentUser }
-}
-
 module.exports = {
     calculateVariableCost,
     currencies,
     monthFromLocale,
+    yearFromLocale,
     pieChart,
     getSchedulesFormatted,
     getUserData

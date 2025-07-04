@@ -4,7 +4,7 @@ const { isSessionValid, refreshSession } = require("../public/js/sessionhelper.j
 const isSignedIn = (req, res, next) => {
   // Check if session exists and user is logged in
   if (!req.session || !req.session.user) {
-    return res.redirect("/auth/sign-in");
+    return res.redirect("/");
   }
 
   // Validate session (check if it's not expired)

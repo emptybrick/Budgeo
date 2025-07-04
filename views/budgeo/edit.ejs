@@ -15,14 +15,14 @@
 
 <body>
   <%- include('../partials/_navbar.ejs') %>
-    <section class="section">
+    <section class="section" style="min-height: 100vh">
       <div class="container" style="max-width: 600px">
         <h1 class="title is-2 has-text-centered">Update Expense Form</h1>
         <%- include('../partials/_links.ejs') %>
           <% if (expense.costType==='Fixed' ) { %>
             <!-- fixed expense form -->
             <div id="fixed-form" class="box" style="margin-top: 1.25rem;">
-              <form action="/users/<%= user._id %>/budget/<%= expense._id %>?_method=PUT" method="POST">
+              <form action="/budgeo/<%= expense._id %>?_method=PUT" method="POST">
                 <div class="field">
                   <label class="label" for="name">Name:</label>
                   <div class="control">
@@ -85,7 +85,8 @@
                     <button class="button is-primary add-expense-button" type="submit">Update</button>
                   </div>
                   <div class="control">
-                    <a class="button is-primary is-inverted back-form-button" type="button" href="/users/<%=user._id%>/budget/<%= expense._id %>">
+                    <a class="button is-primary is-inverted back-form-button" type="button"
+                      href="/budgeo/<%= expense._id %>">
                       Back
                     </a>
                   </div>
@@ -95,7 +96,7 @@
             <% } else { %>
               <!-- Variable Expense Form -->
               <div id="variable-form" class="box" style="margin-top: 1.25rem;">
-                <form action="/users/<%= user._id %>/budget/<%= expense._id %>?_method=PUT" method="POST">
+                <form action="/budgeo/<%= expense._id %>?_method=PUT" method="POST">
                   <div class="field">
                     <label class="label" for="name">Name:</label>
                     <div class="control">
@@ -157,13 +158,13 @@
                                     <input class="input has-text-centered" type="text"
                                       name="historical[<%= index %>][month]" id="month[<%= index %>]"
                                       value="<%= payment.date.toLocaleString(currency.locale, { month: 'long', timeZone: 'UTC' }) %>"
-                                      readonly style="width: 130px; text-align: center;" tabindex="-1" />
+                                      required readonly style="width: 130px; text-align: center;" tabindex="-1" />
                                   </div>
                                   <div class="control">
                                     <input class="input has-text-centered" type="text"
                                       name="historical[<%= index %>][year]" id="year[<%= index %>]"
-                                      value="<%= payment.date.getUTCFullYear() %>" readonly
-                                      style="width: 87px; text-align: center;" tabindex="-1" />
+                                      value="<%= payment.date.toLocaleString(currency.locale, { year: 'numeric', timeZone: 'UTC' }) %>"
+                                      required readonly style="width: 87px; text-align: center;" tabindex="-1" />
                                   </div>
                                 </div>
                               </div>
@@ -201,16 +202,16 @@
                       <button class="button is-primary add-expense-button" type="submit">Update</button>
                     </div>
                     <div class="control">
-                      <a class="button is-primary is-inverted back-form-button" type="button" href="/users/<%=user._id%>/budget/<%= expense._id %>">
+                      <a class="button is-primary is-inverted back-form-button" type="button"
+                        href="/budgeo/<%= expense._id %>">
                         Back
                       </a>
                     </div>
                   </div>
+                </form>
               </div>
-              </form>
+              <% } %>
       </div>
-      <% } %>
-        </div>
     </section>
     <script>
       window.currency = JSON.parse(

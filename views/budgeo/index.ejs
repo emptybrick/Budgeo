@@ -14,7 +14,7 @@
 
 <body>
   <%- include('../partials/_navbar.ejs') %>
-    <section class="section">
+    <section class="section" style="min-height: 100vh">
       <div class="container">
         <h1 class="title is-2 has-text-centered">Expenses</h1>
         <%- include('../partials/_links.ejs') %>
@@ -22,7 +22,7 @@
             <div class="field has-addons">
               <div class="control">
                 <div class="select">
-                  <select id="type-filter">
+                  <select id="type-filter" aria-label="select type filter">
                     <option value="all">All</option>
                     <option value="Credit Card">Credit Card</option>
                     <option value="Subscription">Subscription</option>
@@ -61,7 +61,7 @@
                       <div class="field" style="margin-top: 1rem;">
                         <div class="field is-grouped is-grouped-centered">
                           <p class="control">
-                            <a class="button is-primary view-expense-button" href="/users/<%=user._id%>/budget/<%= expense._id %>">View
+                            <a class="button is-primary view-expense-button" href="/budgeo/<%= expense._id %>">View
                               Expense</a>
                           </p>
                         </div>

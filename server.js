@@ -8,7 +8,7 @@ const session = require('express-session');
 const MongoStore = require("connect-mongo");
 
 const authController = require('./controllers/auth.js');
-const budgetController = require('./controllers/budget.js');
+const budgeoController = require('./controllers/budgeo.js');
 
 const isSignedIn = require('./middleware/is-signed-in.js');
 const passUserToView = require('./middleware/pass-user-to-view.js');
@@ -34,13 +34,13 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
       collectionName: "sessions",
-      ttl: 24 * 60 * 60, // 1 day TTL
+      ttl: 60 * 60, // 1 day TTL
       autoRemove: "native", // Use MongoDB TTL index
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true, // Prevent XSS attacks
-      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+      maxAge: 60 * 60 * 1000, // 1 day in milliseconds
       sameSite: "lax", // CSRF protection
     },
     name: "budgeo.sid", // Custom session cookie name
@@ -54,7 +54,7 @@ app.use(passUserToView);
 app.get('/', (req, res) => {
   const path = req.path
   if (req.session.user) {
-    res.redirect(`/users/${req.session.user._id}/budget`);
+    res.redirect(`/budgeo`);
   } else {
     res.render('index.ejs', { path });
   }
@@ -62,7 +62,18 @@ app.get('/', (req, res) => {
 
 app.use(isSignedIn);
 
-app.use('/users/:userId/budget', budgetController);
+app.use('/budgeo', budgeoController);
+
+// catch all for 404
+app.use('/*splat', (req, res) => {
+  const reason = "Page not Found!"
+  const statusCode = 404 
+  res.render('status.ejs', { reason, statusCode })
+})
+
+app.use((err, req, res, next) => {
+  res.render('status.ejs', { statusCode: err.statusCode, reason: err.reason })
+})
 
 app.listen(port, () => {
   console.log(`The express app is ready on port ${port}!`);

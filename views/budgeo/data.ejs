@@ -13,26 +13,29 @@
 
 <body>
   <%- include('../partials/_navbar.ejs') %>
-    <section class="section">
+    <section class="section" style="min-height: 100vh">
       <div class="container" style="max-width: 600px;">
         <h1 class="title is-2 has-text-centered">Financial Data</h1>
         <%- include('../partials/_links.ejs') %>
           <div class="box" style="margin-top: 1.25rem;">
             <div class="content">
               <h2 class="title is-5 has-text-centered">Monthly Cost By Category</h2>
-              <div class="container is-flex is-flex-direction-column" style="max-width: 500px;">
+              <div class="container is-flex is-flex-direction-column" style="max-width: 400px;">
                 <canvas id="pie-chart"></canvas>
               </div>
             </div>
-            <div class="content">
-              <h2 class="title is-5 has-text-centered">Estimates</h2>
-              <div id="total-cost">
-                <span class="has-text-weight-bold">Estimated Total:</span>
-              </div>
-              <div id="estimate-cost">
-                <span class="has-text-weight-bold">Confidence Estimate:</span>
+            <div class="card">
+              <div class="card-content">
+                <h2 class="title is-5 has-text-centered">Estimates</h2>
+                <div id="total-cost">
+                  <span class="has-text-weight-bold">Estimated Total:</span>
+                </div>
+                <div id="estimate-cost">
+                  <span class="has-text-weight-bold">Confidence Estimate:</span>
+                </div>
               </div>
             </div>
+            <br>
             <div class="field is-grouped is-grouped-centered buttons are-medium data-estimate-button-group">
               <button class="button is-primary data-estimate-button" onclick="changeSchedule('Weekly')">Weekly</button>
               <button class="button is-primary data-estimate-button"

@@ -9,7 +9,7 @@ const isSessionValid = (session) => {
         const now = new Date();
         const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
 
-        if (hoursDiff > 24) {
+        if (hoursDiff > 1) {
             return false;
         }
     }
