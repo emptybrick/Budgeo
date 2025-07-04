@@ -16,7 +16,10 @@ const parseCurrency = require("parsecurrency");
 // const newValue = '5.000,00 €'
 // const formattedValue = parseCurrency(newValue);
 
-router.get("/", async (req, res) => {
+// router.use(isSignedIn)
+
+router.get("/:username/expenses", async (req, res) => {
+  
   try {
     const { username, expense, currency, path } = await getUserData(User, req);
     res.render("budgeo/index.ejs", { expense, path, username, currency });
@@ -26,17 +29,17 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/new", async (req, res) => {
+router.get("/:username/expenses/new", async (req, res) => {
   try {
-    const { expense, currency, path } = await getUserData(User, req);
-    res.render("budgeo/new.ejs", { path, expense, currency });
+    const { expense, currency, path, username } = await getUserData(User, req);
+    res.render("budgeo/new.ejs", { path, expense, currency, username });
   } catch (error) {
     console.log(error);
-    res.redirect("/budgeo");
+    res.redirect(`/budgeo/${req.params.username}/expenses`);
   }
 });
 
-router.get("/data", async (req, res) => {
+router.get("/:username/data", async (req, res) => {
   try {
     const { username, expense, currency, path } = await getUserData(User, req);
     const pieData = await pieChart(expense);
@@ -84,11 +87,11 @@ router.get("/data", async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo`);
+    res.redirect(`/budgeo/${req.params.username}/expenses`);
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/:username/expenses", async (req, res) => {
   try {
     const { currentUser } = await getUserData(User, req);
     if (!req.body.cost) {
@@ -125,40 +128,48 @@ router.post("/", async (req, res) => {
     currentUser.budget.push(expenseData);
     await currentUser.save();
 
-    res.redirect(`/budgeo`);
+    res.redirect(`/budgeo/${req.params.username}/expenses`);
   } catch (error) {
     console.log(error);
-    res.redirect("/budgeo");
+    res.redirect(`/budgeo/${req.params.username}/expenses`);
   }
 });
 
-router.get("/:expenseId/edit", async (req, res, next) => {
+router.get("/:username/expenses/:expenseId/edit", async (req, res, next) => {
   try {
-    const { expense, currency, path } = await getUserData(User, req, "getId");
+    const { expense, currency, path, username } = await getUserData(
+      User,
+      req,
+      "getId"
+    );
     if (!expense) {
       return next();
     }
-    res.render("budgeo/edit.ejs", { expense, currency, path });
+    res.render("budgeo/edit.ejs", { expense, currency, path, username });
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo`);
+    res.redirect(`/budgeo/${req.params.username}/expenses/${req.params.expenseId}`);
   }
 });
 
-router.get("/:expenseId", async (req, res, next) => {
+router.get("/:username/expenses/:expenseId", async (req, res, next) => {
   try {
-    const { expense, currency, path } = await getUserData(User, req, "getId");
+    const { expense, currency, path, username } = await getUserData(
+      User,
+      req,
+      "getId"
+    );
     if (!expense) {
       return next();
     }
-    res.render("budgeo/show.ejs", { expense, path, currency });
+    res.render("budgeo/show.ejs", { expense, path, currency, username });
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo`);
+    res.redirect(`/budgeo/${req.params.username}/expenses`);
   }
 });
 
-router.put("/:expenseId", async (req, res, next) => {
+router.put("/:username/expenses/:expenseId", async (req, res, next) => {
   try {
     const { expense, currentUser } = await getUserData(User, req, "getId");
     if (!expense) {
@@ -188,14 +199,14 @@ router.put("/:expenseId", async (req, res, next) => {
     }
     expense.set(req.body);
     await currentUser.save();
-    res.redirect(`/budgeo/${expense._id}`);
+    res.redirect(`/budgeo/${req.params.username}/expenses/${expense._id}`);
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo/${req.params.expenseId}`);
+    res.redirect(`/budgeo/${req.params.username}/expenses/${req.params.expenseId}`);
   }
 });
 
-router.delete("/:expenseId", async (req, res, next) => {
+router.delete("/:username/expenses/:expenseId", async (req, res, next) => {
   try {
     const { expense, currentUser } = await getUserData(User, req, "getId");
     if (!expense) {
@@ -203,10 +214,10 @@ router.delete("/:expenseId", async (req, res, next) => {
     }
     expense.deleteOne();
     await currentUser.save();
-    res.redirect(`/budgeo`);
+    res.redirect(`/budgeo/${req.params.username}/expenses`);
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo`);
+    res.redirect(`/budgeo/${req.params.username}/expenses`);
   }
 });
 

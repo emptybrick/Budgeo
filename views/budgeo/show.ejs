@@ -77,7 +77,7 @@
             <% } %>
               <div class="field is-grouped is-grouped-centered buttons are-medium">
                 <div class="control">
-                  <form action="/budgeo/<%= expense._id %>?_method=DELETE" method="POST">
+                  <form action="/budgeo/<%= username %>/expenses/<%= expense._id %>?_method=DELETE" method="POST">
                     <button class="button is-primary show-page-button" type="submit" style="width: 80px">
                       Delete
                     </button>
@@ -85,7 +85,7 @@
                 </div>
                 <div class="control">
                   <a class="button is-primary is-inverted show-page-button"
-                    href="/budgeo/<%= expense._id %>/edit">Edit</a>
+                    href="/budgeo/<%= username %>/expenses/<%= expense._id %>/edit">Edit</a>
                 </div>
               </div>
               <% if (expense.historical.length> 0) { %>

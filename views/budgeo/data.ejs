@@ -1,57 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      <%= username.endsWith('s') ? username + "' Budget Charts" : username + "'s Budget Charts" %>
+    </title>
+    <link rel="icon" href="/images/logo-white.png" type="image/png" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>
-    <%= username.endsWith('s') ? username + "' Budget Charts" : username + "'s Budget Charts" %>
-  </title>
-  <link rel="icon" href="/images/logo-white.png" type="image/png" />
-  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
-</head>
-
-<body>
-  <%- include('../partials/_navbar.ejs') %>
+  <body>
+    <%- include('../partials/_navbar.ejs') %>
     <section class="section" style="min-height: 100vh">
-      <div class="container" style="max-width: 600px;">
+      <div class="container" style="max-width: 600px">
         <h1 class="title is-2 has-text-centered">Financial Data</h1>
         <%- include('../partials/_links.ejs') %>
-          <div class="box" style="margin-top: 1.25rem;">
-            <div class="content">
-              <h2 class="title is-5 has-text-centered">Monthly Cost By Category</h2>
-              <div class="container is-flex is-flex-direction-column" style="max-width: 400px;">
-                <canvas id="pie-chart"></canvas>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-content">
-                <h2 class="title is-5 has-text-centered">Estimates</h2>
-                <div id="total-cost">
-                  <span class="has-text-weight-bold">Estimated Total:</span>
-                </div>
-                <div id="estimate-cost">
-                  <span class="has-text-weight-bold">Confidence Estimate:</span>
-                </div>
-              </div>
-            </div>
-            <br>
-            <div class="field is-grouped is-grouped-centered buttons are-medium data-estimate-button-group">
-              <button class="button is-primary data-estimate-button" onclick="changeSchedule('Weekly')">Weekly</button>
-              <button class="button is-primary data-estimate-button"
-                onclick="changeSchedule('Monthly')">Monthly</button>
-              <button class="button is-primary data-estimate-button"
-                onclick="changeSchedule('Quarterly')">Quarterly</button>
-              <button class="button is-primary data-estimate-button"
-                onclick="changeSchedule('Annually')">Annually</button>
+        <div class="box" style="margin-top: 1.25rem">
+          <div class="content">
+            <h2 class="title is-5 has-text-centered">
+              Monthly Cost By Category
+            </h2>
+            <div
+              class="container is-flex is-flex-direction-column"
+              style="max-width: 400px"
+            >
+              <canvas id="pie-chart"></canvas>
             </div>
           </div>
+          <div class="card">
+            <div class="card-content">
+              <h2 class="title is-5 has-text-centered">Estimates</h2>
+              <div id="total-cost">
+                <span class="has-text-weight-bold">Estimated Total:</span>
+              </div>
+              <div id="estimate-cost">
+                <span class="has-text-weight-bold">Confidence Estimate:</span>
+              </div>
+            </div>
+          </div>
+          <br />
+          <div
+            class="field is-grouped is-grouped-centered buttons are-medium data-estimate-button-group"
+          >
+            <button
+              class="button is-primary data-estimate-button"
+              onclick="changeSchedule('Weekly')"
+            >
+              Weekly
+            </button>
+            <button
+              class="button is-primary data-estimate-button"
+              onclick="changeSchedule('Monthly')"
+            >
+              Monthly
+            </button>
+            <button
+              class="button is-primary data-estimate-button"
+              onclick="changeSchedule('Quarterly')"
+            >
+              Quarterly
+            </button>
+            <button
+              class="button is-primary data-estimate-button"
+              onclick="changeSchedule('Annually')"
+            >
+              Annually
+            </button>
+          </div>
+        </div>
       </div>
     </section>
     <script>
-      window.currency = JSON.parse(
-        `<%- JSON.stringify(currency) %>`
-      );
+      window.currency = JSON.parse(`<%- JSON.stringify(currency) %>`);
       window.expense = JSON.parse(`<%- JSON.stringify(expense) %>`);
       window.pieData = JSON.parse(`<%- JSON.stringify(pieData) %>`);
       window.scheduleData = JSON.parse(`<%- JSON.stringify(scheduleData) %>`);
@@ -74,7 +98,6 @@
           ],
         },
         options: {
-
           locale: currency.locale,
           plugins: {
             legend: {
@@ -88,6 +111,5 @@
         },
       });
     </script>
-</body>
-
+  </body>
 </html>

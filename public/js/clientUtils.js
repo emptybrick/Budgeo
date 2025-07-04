@@ -208,12 +208,10 @@ async function addRow() {
   const costSelected = document.getElementById(`cost[${currentRowIndex}]`);
   const errorMessage = document.querySelector("#year-month-error-message");
   const yearMonth = `${yearSelected.value}-${monthSelected.value}`;
-  console.log(currentRowIndex);
 
   // adds row if there is no row for data input to start (used on edits)
   // could check month or year also, but doesnt matter which it checks
   if (costSelected.readOnly) {
-    console.log("row is already readonly adding new row");
     await addRowData();
     return;
   }

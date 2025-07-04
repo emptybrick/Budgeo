@@ -47,22 +47,22 @@ app.use(
   })
 );
 
-app.use('/auth', authController);
-
 app.use(passUserToView);
 
-app.get('/', (req, res) => {
-  const path = req.path
+app.use('/budgeo/auth', authController);
+
+app.get("/budgeo", (req, res) => {
+  const path = req.path;
   if (req.session.user) {
-    res.redirect(`/budgeo`);
+    res.redirect(`/budgeo/${req.session.user.username}/expenses`);
   } else {
-    res.render('index.ejs', { path });
+    res.render("index.ejs", { path });
   }
 });
 
 app.use(isSignedIn);
 
-app.use('/budgeo', budgeoController);
+app.use("/budgeo", budgeoController);
 
 // catch all for 404
 app.use('/*splat', (req, res) => {

@@ -2,20 +2,20 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const { currencies } = require('../public/js/serverUtils.js');
-
-const passUserToView = require("../middleware/pass-user-to-view");
-
 const User = require('../models/user.js');
-
-router.use(passUserToView);
 
 router.get("/sign-in", (req, res) => {
   // If user is already signed in, redirect to home
-  const path = req.path
-  if (req.session.user) {
-    return res.redirect("/");
+  try {
+    const path = req.path;
+    if (req.session.user) {
+      return res.redirect(`/budgeo/${req.session.user.username}/expenses`);
+    }
+    res.render("auth/sign-in.ejs", { path, showMessage: false });
+  } catch (err) {
+    console.log(err)
+    res.redirect('/budgeo')
   }
-  res.render("auth/sign-in.ejs", { path, showMessage: false });
 });
 
 router.post('/sign-in', async (req, res, next) => {
@@ -39,9 +39,11 @@ router.post('/sign-in', async (req, res, next) => {
     req.session.regenerate((err) => {
       if (err) {
         console.log("Session regeneration error:", err);
-        // const reason = "Authentication error"
-        // res.status(500).render('status.ejs', { reason })
-        return res.status(500).send("Authentication error");
+        const err = {
+          statusCode: 500,
+          reason: "Authentication error",
+        };
+        return next(err);
       }
 
       // There is a user AND they had the correct password. Time to make a session!
@@ -57,22 +59,27 @@ router.post('/sign-in', async (req, res, next) => {
       req.session.save((err) => {
         if (err) {
           console.log("Session save error:", err);
-          // const reason = "Authentication error"
-          // res.status(500).render('status.ejs', { err })
-          return res.status(500).send("Authentication error");
+          const err = {
+            statusCode: 500,
+            reason: "Authentication error",
+          };
+          return next(err);
         }
-        res.redirect("/");
+        res.redirect(`/budgeo/${req.session.user.username}/expenses`);
       });
     })
 
   } catch (e) {
     console.log("Cannot sign in", e);
-    res.status(500).send("Cannot sign user in");
+    const err = {
+      statusCode: 500,
+      reason: "Cannot sign user in",
+    };
+  return next(err)
   }
 });
 
 router.get('/sign-up', (req, res) => {
-  console.log('getting signup')
   const path = req.path
   res.render('auth/sign-up.ejs', { currencies, path, failedUser: false, failedPassword: false });
 });
@@ -112,7 +119,7 @@ router.get("/sign-out", (req, res) => {
       console.log("Session destruction error:", err);
     }
     res.clearCookie("budgeo.sid"); // Clear the session cookie
-    res.redirect("/");
+    res.redirect("/budgeo");
   });
 });
 

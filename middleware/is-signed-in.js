@@ -4,7 +4,7 @@ const { isSessionValid, refreshSession } = require("../public/js/sessionhelper.j
 const isSignedIn = (req, res, next) => {
   // Check if session exists and user is logged in
   if (!req.session || !req.session.user) {
-    return res.redirect("/");
+    return res.redirect("/budgeo");
   }
 
   // Validate session (check if it's not expired)
@@ -16,7 +16,7 @@ const isSignedIn = (req, res, next) => {
       }
       res.clearCookie("budgeo.sid");
       console.log('isSessionValid? no')
-      return res.redirect("/auth/sign-in?expired=true");
+      return res.redirect("/budgeo/auth/sign-in?expired=true");
     });
   }
   // Refresh session activity timestamp
