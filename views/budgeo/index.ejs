@@ -5,91 +5,122 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>
-    <%= username.endsWith('s') ? username + "' Budget" : username + "'s Budget" %>
+    <%= username.endsWith('s') ? username + "' Expenses View" : username + "'s Expenses View" %>
   </title>
   <link rel="icon" href="/images/logo-white.png" type="image/png" />
-  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css">
-
+  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css" />
 </head>
 
 <body>
   <%- include('../partials/_navbar.ejs') %>
     <section class="section" style="min-height: 100vh">
-      <div class="container">
-        <h1 class="title is-2 has-text-centered">Expenses</h1>
-        <%- include('../partials/_links.ejs') %>
-          <div class="box" style="max-width: 900px; margin: 0 auto">
-            <div class="field has-addons">
-              <div class="control">
-                <div class="select">
-                  <select id="type-filter" aria-label="select type filter">
-                    <option value="all">All</option>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Subscription">Subscription</option>
-                    <option value="Utility">Utility</option>
-                    <option value="Loan">Loan</option>
-                    <option value="Other">Other</option>
-                  </select>
+      <% if (expense.length < 1) { %>
+        <div class="container">
+          <div class="content" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          ">
+            <h1 class="title is-2 has-text-centered">Expenses</h1>
+            <%- include('../partials/_links.ejs') %>
+              <div class="content">
+                <img src="/images/logo.png" alt="Budgeo Logo" class="logo-img"
+                  style="max-width: 250px; margin-top: 2rem; margin-bottom: 1.5rem" />
+              </div>
+              <div class="content">
+                <div class="notification is-primary" style="max-width: fit-content">
+                  No data found. Please add some new expenses to get started!
                 </div>
               </div>
-            </div>
-            <div class="columns is-multiline" id="expenses-list">
-              <% expense.forEach((expense)=>{ %>
-                <div class="column expense-item"
-                  data-type="<%= expense.type %>">
-                  <div class="card">
-                    <div class="card-content">
-                      <div class="content">
-                      <p class="title is-5 has-text-centered">
-                        <%= expense.name %>
-                      </p>
-                      <p><strong>Type:</strong>
-                        <%= expense.type %>
-                      </p>
-                      <p>
-                        <strong>Schedule:</strong>
-                        <span>
-                          <%= expense.costType==="Variable" ? expense.costType : expense.schedule %>
-                        </span>
-                      </p>
-                      <p>
-                        <strong>Cost:</strong>
-                        <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency:
-                          currency.code }).format(expense.cost) %>
-                      </p>
-                    </div>
-                      <div class="field" style="margin-top: 1rem;">
-                        <div class="field is-grouped is-grouped-centered">
-                          <p class="control">
-                            <a class="button is-primary view-expense-button" href="/budgeo/<%= username %>/expenses/<%= expense._id %>">View
-                              Expense</a>
-                          </p>
-                        </div>
+          </div>
+        </div>
+        <% } else { %>
+          <div class="container">
+            <div class="content" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            ">
+              <h1 class="title is-2 has-text-centered">Expenses</h1>
+              <%- include('../partials/_links.ejs') %>
+                <div class="box" style="max-width: 900px; margin: 0 auto">
+                  <div class="field has-addons">
+                    <div class="control">
+                      <div class="select">
+                        <select id="type-filter" aria-label="select type filter">
+                          <option value="all">All</option>
+                          <option value="Credit Card">Credit Card</option>
+                          <option value="Subscription">Subscription</option>
+                          <option value="Utility">Utility</option>
+                          <option value="Loan">Loan</option>
+                          <option value="Other">Other</option>
+                        </select>
                       </div>
                     </div>
                   </div>
+                  <div class="columns is-multiline" id="expenses-list">
+                    <% expense.forEach((expense)=>{ %>
+                      <div class="column expense-item" data-type="<%= expense.type %>">
+                        <div class="card" style="min-width: 250px; min-height: 270px;">
+                          <div class="card-content" style="min-height: 270px; align-content: space-around;">
+                            <div class="content">
+                              <p class="title is-5 has-text-centered has-text-weight-bold">
+                                <%= expense.name %>
+                              </p>
+                              <p>
+                                <strong>Type:</strong>
+                                <%= expense.type %>
+                              </p>
+                              <p>
+                                <strong>Schedule:</strong>
+                                <span>
+                                  <%= expense.costType==="Variable" ? expense.costType : expense.schedule %>
+                                </span>
+                              </p>
+                              <p>
+                                <strong>Cost:</strong>
+                                <%= Intl.NumberFormat(currency.locale, { style: 'currency' , currency: currency.code
+                                  }).format(expense.cost) %>
+                              </p>
+                            </div>
+                            <div class="field" style="margin-top: 1rem">
+                              <div class="field is-grouped is-grouped-centered">
+                                <p class="control">
+                                  <a class="button is-primary view-expense-button"
+                                    href="/budgeo/<%= username %>/expenses/<%= expense._id %>">View Expense</a>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <% }) %>
+                  </div>
                 </div>
-                <% }) %>
             </div>
           </div>
-      </div>
+          <% } %>
     </section>
     <script>
       // Expense filter logic
-      document.addEventListener("DOMContentLoaded", function () {
-        const expensesFilter = document.getElementById("type-filter");
-        const expenseCard = document.querySelectorAll(".expense-item");
-        expensesFilter.addEventListener("change", function () {
-          const expenseType = expensesFilter.value;
-          expenseCard.forEach((card) => {
-            if (expenseType === "all" || card.dataset.type === expenseType) {
-              card.style.display = "";
-            } else {
-              card.style.display = "none";
-            }
+      if (document.getElementById('type-filter')) {
+        document.addEventListener("DOMContentLoaded", function () {
+          const expensesFilter = document.getElementById("type-filter");
+          const expenseCard = document.querySelectorAll(".expense-item");
+          expensesFilter.addEventListener("change", function () {
+            const expenseType = expensesFilter.value;
+            expenseCard.forEach((card) => {
+              if (expenseType === "all" || card.dataset.type === expenseType) {
+                card.style.display = "";
+              } else {
+                card.style.display = "none";
+              }
+            });
           });
         });
-      });
+      }
     </script>
 </body>
 

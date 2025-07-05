@@ -26,7 +26,7 @@
                 <div class="field">
                   <label class="label" for="name">Name:</label>
                   <div class="control">
-                    <input class="input name-input" type="text" name="name" id="fixed-name" maxlength="15"
+                    <input class="input name-input" type="text" name="name" id="fixed-name" maxlength="20"
                       value="<%= expense.name %>" required />
                   </div>
                 </div>
@@ -100,7 +100,7 @@
                   <div class="field">
                     <label class="label" for="name">Name:</label>
                     <div class="control">
-                      <input class="input name-input" type="text" name="name" id="name" maxlength="15"
+                      <input class="input name-input" type="text" name="name" id="name" maxlength="20"
                         value="<%= expense.name %>" required />
                     </div>
                   </div>
@@ -194,12 +194,12 @@
                   </div>
                   <div class="has-text-centered">
                     <button class="button is-primary is-inverted add-row-button" id="add-row" type="button"
-                      onclick="addRow(); document.querySelector('#variable-form form').reportValidity();">Add
+                      onclick="addRow()">Add
                       Row</button>
                   </div>
                   <div class="field is-grouped is-grouped-centered buttons are-medium" style="margin-top: 1.5rem;">
                     <div class="control">
-                      <button class="button is-primary add-expense-button" type="submit">Update</button>
+                      <button class="button is-primary add-expense-button" type="button" onclick="attemptFormSubmit()">Update</button>
                     </div>
                     <div class="control">
                       <a class="button is-primary is-inverted back-form-button" type="button"

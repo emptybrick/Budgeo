@@ -1,8 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const { currencies } = require('../public/js/serverUtils.js');
-const User = require('../models/user.js');
+const bcrypt = require("bcrypt");
+const { currencies } = require("../public/js/serverUtils.js");
+const User = require("../models/user.js");
 
 router.get("/sign-in", (req, res) => {
   // If user is already signed in, redirect to home
@@ -12,18 +12,25 @@ router.get("/sign-in", (req, res) => {
       return res.redirect(`/budgeo/${req.session.user.username}/expenses`);
     }
     res.render("auth/sign-in.ejs", { path, showMessage: false });
-  } catch (err) {
-    console.log(err)
-    res.redirect('/budgeo')
+  } catch (e) {
+    console.log(e);
+    const err = {
+      statusCode: 500,
+      reason: "CANNOT LOCATE THE SIGN-IN PAGE!",
+    };
+    return next(err);
   }
 });
 
-router.post('/sign-in', async (req, res, next) => {
+router.post("/sign-in", async (req, res, next) => {
   try {
     // checks for user and if none renders message
     const userInDatabase = await User.findOne({ username: req.body.username });
     if (!userInDatabase) {
-      return res.render('auth/sign-in.ejs', { path: req.path, showMessage: true });
+      return res.render("auth/sign-in.ejs", {
+        path: req.path,
+        showMessage: true,
+      });
     }
 
     // checks password using bcrypt compare and if invalid renders message
@@ -32,7 +39,10 @@ router.post('/sign-in', async (req, res, next) => {
       userInDatabase.password
     );
     if (!validPassword) {
-      return res.render('auth/sign-in.ejs', { path: req.path, showMessage: true });
+      return res.render("auth/sign-in.ejs", {
+        path: req.path,
+        showMessage: true,
+      });
     }
 
     // Regenerate session to prevent session fixation attacks
@@ -41,7 +51,7 @@ router.post('/sign-in', async (req, res, next) => {
         console.log("Session regeneration error:", err);
         const err = {
           statusCode: 500,
-          reason: "Authentication error",
+          reason: "AUTHENTICATION ERROR",
         };
         return next(err);
       }
@@ -61,43 +71,94 @@ router.post('/sign-in', async (req, res, next) => {
           console.log("Session save error:", err);
           const err = {
             statusCode: 500,
-            reason: "Authentication error",
+            reason: "AUTHENTICATION ERROR",
           };
           return next(err);
         }
         res.redirect(`/budgeo/${req.session.user.username}/expenses`);
       });
-    })
-
+    });
   } catch (e) {
     console.log("Cannot sign in", e);
     const err = {
       statusCode: 500,
-      reason: "Cannot sign user in",
+      reason: "CANNOT SIGN USER IN",
     };
-  return next(err)
+    return next(err);
   }
 });
 
-router.get('/sign-up', (req, res) => {
-  const path = req.path
-  res.render('auth/sign-up.ejs', { currencies, path, failedUser: false, failedPassword: false });
+router.get("/sign-up", (req, res) => {
+  const path = req.path;
+  res.render("auth/sign-up.ejs", {
+    currencies,
+    path,
+    failedUser: false,
+    failedPassword: false,
+    failedCurrency: false,
+    failedSpecialChar: false,
+  });
 });
 
-router.post('/sign-up', async (req, res, next) => {
+router.post("/sign-up", async (req, res, next) => {
   try {
+    // validate no special characters in username except _
+    const regex = /^[\p{L}\p{N}_]*$/u;
+    if (!regex.test(req.body.username)) {
+      return res.render("auth/sign-up.ejs", {
+        currencies,
+        path: req.path,
+        failedUser: false,
+        failedPassword: false,
+        failedCurrency: false,
+        failedSpecialChar: true,
+      });
+    }
+    // validating password
+    if (req.body.password !== req.body.confirmPassword) {
+      return res.render("auth/sign-up.ejs", {
+        currencies,
+        path: req.path,
+        failedUser: false,
+        failedPassword: true,
+        failedCurrency: false,
+        failedSpecialChar: false,
+      });
+    }
+
+    // validating unique user
     const userInDatabase = await User.findOne({ username: req.body.username });
     if (userInDatabase) {
-      return res.render('auth/sign-up.ejs', { currencies, path: req.path, failedUser: true, failedPassword: false });
+      return res.render("auth/sign-up.ejs", {
+        currencies,
+        path: req.path,
+        failedUser: true,
+        failedPassword: false,
+        failedCurrency: false,
+        failedSpecialChar: false,
+      });
     }
-    if (req.body.password !== req.body.confirmPassword) {
-      return res.render('auth/sign-up.ejs', { currencies, path: req.path, failedPassword: true, failedUser: false });
+
+    // validating currency option selected matches valid options
+    const currencySelected = currencies.find(
+      (currency) => currency.code === req.body.currency.code
+    );
+    if (!req.body.currency || currencySelected) {
+      return res.render("auth/sign-up.ejs", {
+        currencies,
+        path: req.path,
+        failedPassword: false,
+        failedUser: false,
+        failedCurrency: true,
+        failedSpecialChar: false,
+      });
     }
+
     const hashedPassword = bcrypt.hashSync(req.body.password, 10);
     req.body.password = hashedPassword;
 
-    const currency = JSON.parse(req.body.currency)
-    req.body.currency = currency
+    const currency = JSON.parse(req.body.currency);
+    req.body.currency = currency;
 
     await User.create(req.body);
 
@@ -106,9 +167,9 @@ router.post('/sign-up', async (req, res, next) => {
     console.log("Cannot sign up", e);
     const err = {
       statusCode: 500,
-      reason: "Cannot sign user up"
-    }
-    return next(err)
+      reason: "CANNOT SIGN USER UP",
+    };
+    return next(err);
   }
 });
 

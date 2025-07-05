@@ -1,78 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      <%= username.endsWith('s') ? username + "' Budget Charts" : username + "'s Budget Charts" %>
-    </title>
-    <link rel="icon" href="/images/logo-white.png" type="image/png" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css"
-    />
-  </head>
 
-  <body>
-    <%- include('../partials/_navbar.ejs') %>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= username.endsWith('s') ? username + "' Chart & Estimate" : username + "'s Chart & Estimate" %>
+  </title>
+  <link rel="icon" href="/images/logo-white.png" type="image/png" />
+  <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css" />
+</head>
+
+<body>
+  <%- include('../partials/_navbar.ejs') %>
     <section class="section" style="min-height: 100vh">
-      <div class="container" style="max-width: 600px">
-        <h1 class="title is-2 has-text-centered">Financial Data</h1>
-        <%- include('../partials/_links.ejs') %>
-        <div class="box" style="margin-top: 1.25rem">
-          <div class="content">
-            <h2 class="title is-5 has-text-centered">
-              Monthly Cost By Category
-            </h2>
-            <div
-              class="container is-flex is-flex-direction-column"
-              style="max-width: 400px"
-            >
-              <canvas id="pie-chart"></canvas>
+      <% if (expense.length < 1) { %>
+        <div class="container">
+          <div class="content is-flex" style="flex-direction: column; justify-content: center; align-items: center;">
+            <h1 class="title is-2 has-text-centered">Financial Data</h1>
+            <div class="field has-text-centered">
+              <a href="/budgeo/<%=username%>/expenses/new"
+                class="button is-primary is-inverted is-large main-link-button">Add A
+                New Expense</a>
             </div>
-          </div>
-          <div class="card">
-            <div class="card-content">
-              <h2 class="title is-5 has-text-centered">Estimates</h2>
-              <div id="total-cost">
-                <span class="has-text-weight-bold">Estimated Total:</span>
-              </div>
-              <div id="estimate-cost">
-                <span class="has-text-weight-bold">Confidence Estimate:</span>
+            <div class="content">
+              <img src="/images/logo.png" alt="Budgeo Logo" class="logo-img"
+                style="max-width: 250px; margin-top: 2rem; margin-bottom: 1.5rem;">
+            </div>
+            <div class="content">
+              <div class="notification is-primary" style="max-width: fit-content">
+                No data found. Please add some new expenses to get started!
               </div>
             </div>
-          </div>
-          <br />
-          <div
-            class="field is-grouped is-grouped-centered buttons are-medium data-estimate-button-group"
-          >
-            <button
-              class="button is-primary data-estimate-button"
-              onclick="changeSchedule('Weekly')"
-            >
-              Weekly
-            </button>
-            <button
-              class="button is-primary data-estimate-button"
-              onclick="changeSchedule('Monthly')"
-            >
-              Monthly
-            </button>
-            <button
-              class="button is-primary data-estimate-button"
-              onclick="changeSchedule('Quarterly')"
-            >
-              Quarterly
-            </button>
-            <button
-              class="button is-primary data-estimate-button"
-              onclick="changeSchedule('Annually')"
-            >
-              Annually
-            </button>
           </div>
         </div>
-      </div>
+        <% } else { %>
+          <div class="container" style="max-width: 600px">
+            <h1 class="title is-2 has-text-centered">Financial Data</h1>
+            <%- include('../partials/_links.ejs') %>
+              <div class="box" style="margin-top: 1.25rem">
+                <div class="content">
+                  <div class="container is-flex is-flex-direction-column" style="max-width: 450px">
+                    <canvas id="pie-chart"></canvas>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-content">
+                    <h2 class="title is-5 has-text-centered">Estimates</h2>
+                    <div id="total-cost">
+                      <span class="has-text-weight-bold">Estimated Total:</span>
+                    </div>
+                    <div id="estimate-cost">
+                      <span class="has-text-weight-bold">Confidence Estimate:</span>
+                    </div>
+                  </div>
+                </div>
+                <br />
+                <div class="field is-grouped is-grouped-centered buttons are-medium data-estimate-button-group">
+                  <button class="button is-primary data-estimate-button" onclick="changeSchedule('Weekly')">
+                    Weekly
+                  </button>
+                  <button class="button is-primary data-estimate-button" onclick="changeSchedule('Monthly')">
+                    Monthly
+                  </button>
+                  <button class="button is-primary data-estimate-button" onclick="changeSchedule('Quarterly')">
+                    Quarterly
+                  </button>
+                  <button class="button is-primary data-estimate-button" onclick="changeSchedule('Annually')">
+                    Annually
+                  </button>
+                </div>
+              </div>
+          </div>
+          <% } %>
     </section>
     <script>
       window.currency = JSON.parse(`<%- JSON.stringify(currency) %>`);
@@ -84,32 +84,46 @@
     <script defer src="/js/clientUtils.js"></script>
     <script>
       const chartElement = document.getElementById("pie-chart");
-
-      new Chart(chartElement, {
-        type: "pie",
-        data: {
-          labels: pieData.map((piece) => piece.label),
-          datasets: [
-            {
-              data: pieData.map((piece) => piece.value),
-              backgroundColor: pieData.map((piece) => piece.color),
-              hoverOffset: 4,
-            },
-          ],
-        },
-        options: {
-          locale: currency.locale,
-          plugins: {
-            legend: {
-              labels: {
-                font: {
-                  size: 14,
+      if (chartElement) {
+        new Chart(chartElement, {
+          type: "pie",
+          data: {
+            labels: pieData.map((piece) => piece.label),
+            datasets: [
+              {
+                data: pieData.map((piece) => piece.value),
+                backgroundColor: pieData.map((piece) => piece.color),
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            locale: currency.locale,
+            plugins: {
+              legend: {
+                // align: 'start',
+                // position: 'top',
+                title: {
+                  display: true,
+                  text: "MONTHLY COST BY CATEGORY",
+                  font: {
+                    size: 20,
+                  },
+                },
+                labels: {
+                  boxWidth: 20,
+                  boxHeight: 20,
+                  // padding: 5,
+                  font: {
+                    size: 14,
+                  },
                 },
               },
             },
           },
-        },
-      });
+        });
+      }
     </script>
-  </body>
+</body>
+
 </html>

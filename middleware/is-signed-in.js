@@ -16,7 +16,7 @@ const isSignedIn = (req, res, next) => {
       }
       res.clearCookie("budgeo.sid");
       console.log('isSessionValid? no')
-      return res.redirect("/budgeo/auth/sign-in?expired=true");
+      return res.redirect("/auth/sign-in?expired=true");
     });
   }
   // Refresh session activity timestamp

@@ -4,10 +4,11 @@
 // a simple conversion function will process it.  that way it doesnt need to
 // check if its in the locale or not.. it assumes (or knows) its in client locale
 // -------------------------- CONSTANTS ---------------------------- //
-const nextForm = document.getElementById("initial-form");
+const initialForm = document.getElementById("initial-form");
 const variableForm = document.getElementById("variable-form");
 const fixedForm = document.getElementById("fixed-form");
 const addRowButton = document.querySelector("#add-row");
+const errorMessage = document.querySelector("#year-month-error-message");
 
 // data for custom report validity messages
 const inputNames = [
@@ -206,15 +207,22 @@ async function addRow() {
   const monthSelected = document.getElementById(`month[${currentRowIndex}]`);
   const yearSelected = document.getElementById(`year[${currentRowIndex}]`);
   const costSelected = document.getElementById(`cost[${currentRowIndex}]`);
-  const errorMessage = document.querySelector("#year-month-error-message");
-  const yearMonth = `${yearSelected.value}-${monthSelected.value}`;
 
-  // adds row if there is no row for data input to start (used on edits)
-  // could check month or year also, but doesnt matter which it checks
   if (costSelected.readOnly) {
     await addRowData();
+    await reindexRows();
+    updatePlaceholders();
     return;
   }
+
+  costSelected.reportValidity();
+  yearSelected.reportValidity();
+  monthSelected.reportValidity();
+
+  const yearMonth = `${yearSelected.value}-${monthSelected.value}`;
+  // adds row if there is no row for data input to start (used on edits)
+  // could check month or year also, but doesnt matter which it checks
+
   // if yearMonth is in combinations array, returns and shows the error message
   if (monthSelected.value && yearSelected.value && costSelected.value) {
     if (combinations.includes(yearMonth)) {
@@ -263,11 +271,29 @@ async function removeRow(button) {
   }
 }
 
+function attemptFormSubmit() {
+  const form = document.querySelector("#variable-form form");
+  form.reportValidity();
+  const lastRowIndex = rowIndex - 1;
+  const monthSelected = document.getElementById(`month[${lastRowIndex}]`);
+  const yearSelected = document.getElementById(`year[${lastRowIndex}]`);
+  if (monthSelected.readOnly) {
+    form.requestSubmit();
+  }
+  const yearMonth = `${yearSelected.value}-${monthSelected.value}`;
+  const comboIdx = combinations.indexOf(yearMonth);
+  if (combinations.includes(yearMonth) && comboIdx !== lastRowIndex) {
+    return (errorMessage.hidden = false);
+  } else {
+    form.requestSubmit();
+  }
+}
+
 // go back button for new expense form (step form)
 function goBack() {
-  document.getElementById("fixed-form").classList.remove("active");
-  document.getElementById("variable-form").classList.remove("active");
-  document.getElementById("initial-form").classList.add("active");
+  fixedForm.classList.remove("active");
+  variableForm.classList.remove("active");
+  initialForm.classList.add("active");
 }
 
 // initially formats all cost input fields to user locale then called as needed
@@ -436,18 +462,18 @@ document.addEventListener("input", (e) => {
 });
 
 // Handle navigation between forms based on payment type selection
-if (nextForm) {
-  nextForm.addEventListener("submit", async (event) => {
+if (initialForm) {
+  initialForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const paymentType = document.getElementById("costType").value;
-    nextForm.classList.remove("active");
+    initialForm.classList.remove("active");
 
     if (paymentType === "Fixed") {
       fixedForm.classList.add("active");
     } else if (paymentType === "Variable") {
       variableForm.classList.add("active");
     } else {
-      nextForm.classList.add("active");
+      initialForm.classList.add("active");
     }
   });
 }
