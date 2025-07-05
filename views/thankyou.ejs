@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Budgeo Thanks You!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Flatly Bulma theme via bootswatch CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulmaswatch@0.8.1/flatly/bulmaswatch.min.css">
+    <style>
+        .thank-you-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            /* justify-content: center; */
+            align-items: center;
+            background: #e0e0e0;
+        }
+
+        .logo-img {
+            max-width: 300px;
+            margin-bottom: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .thank-you {
+            margin-top: 5.75rem;
+        }
+
+        .thank-you-message {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #333;
+            max-width: fit-content;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <section class="thank-you-container">
+        <div class="thank-you"><img src="/images/budgeo.png" alt="budgeo text logo"></div>
+        <img src="/images/logo.png" alt="Budgeo Logo" class="logo-img">
+        <div class="thank-you-message">
+            Thank you for trying Budgeo <%=username%>, come back anytime!
+        </div>
+        <a href="/budgeo/auth/sign-up" class="button is-primary is-large">
+            Sign Up
+        </a>
+    </section>
+</body>
+
+</html>

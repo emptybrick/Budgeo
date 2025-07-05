@@ -54,8 +54,6 @@ app.get("/", (req, res) => {
     res.redirect("/budgeo");
 });
 
-app.use('/budgeo/auth', authController);
-
 app.get("/budgeo", (req, res) => {
   const path = req.path;
   if (req.session.user) {
@@ -64,6 +62,8 @@ app.get("/budgeo", (req, res) => {
     res.render("index.ejs", { path });
   }
 });
+
+app.use("/budgeo/auth", authController);
 
 app.use(isSignedIn);
 

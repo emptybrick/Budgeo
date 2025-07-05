@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const { currencies } = require("../public/js/serverUtils.js");
 const User = require("../models/user.js");
+const _ = require('lodash');
 
 router.get("/sign-in", (req, res) => {
   // If user is already signed in, redirect to home
@@ -11,7 +12,13 @@ router.get("/sign-in", (req, res) => {
     if (req.session.user) {
       return res.redirect(`/budgeo/${req.session.user.username}/expenses`);
     }
-    res.render("auth/sign-in.ejs", { path, showMessage: false });
+    res.render("auth/sign-in.ejs", {
+      path,
+      showMessage: false,
+      newUser: req.query.newUser || false,
+      signedOut: req.query.signedOut || false,
+      user: req.user || null,
+    });
   } catch (e) {
     console.log(e);
     const err = {
@@ -30,6 +37,8 @@ router.post("/sign-in", async (req, res, next) => {
       return res.render("auth/sign-in.ejs", {
         path: req.path,
         showMessage: true,
+        newUser: req.query.newUser || false,
+        signedOut: false,
       });
     }
 
@@ -42,6 +51,8 @@ router.post("/sign-in", async (req, res, next) => {
       return res.render("auth/sign-in.ejs", {
         path: req.path,
         showMessage: true,
+        newUser: req.query.newUser || false,
+        signedOut: false,
       });
     }
 
@@ -97,13 +108,14 @@ router.get("/sign-up", (req, res) => {
     failedPassword: false,
     failedCurrency: false,
     failedSpecialChar: false,
+    user: req.user || null,
   });
 });
 
 router.post("/sign-up", async (req, res, next) => {
   try {
-    // validate no special characters in username except _
-    const regex = /^[\p{L}\p{N}_]*$/u;
+    // validate no special characters in username except _ 
+    const regex = /^[a-zA-Z0-9_]{3,15}$/;
     if (!regex.test(req.body.username)) {
       return res.render("auth/sign-up.ejs", {
         currencies,
@@ -112,6 +124,7 @@ router.post("/sign-up", async (req, res, next) => {
         failedPassword: false,
         failedCurrency: false,
         failedSpecialChar: true,
+        user: req.user || null,
       });
     }
     // validating password
@@ -123,6 +136,7 @@ router.post("/sign-up", async (req, res, next) => {
         failedPassword: true,
         failedCurrency: false,
         failedSpecialChar: false,
+        user: req.user || null,
       });
     }
 
@@ -136,14 +150,20 @@ router.post("/sign-up", async (req, res, next) => {
         failedPassword: false,
         failedCurrency: false,
         failedSpecialChar: false,
+        user: req.user || null,
       });
     }
 
     // validating currency option selected matches valid options
+    // using lodash for the isEqual deep comparison method for 2 objects
+    // i could of used JSON stringify, but I wanted a bit more robust check incase
+    // the data was correct but in a different order
+    const parsedReqCurrency = JSON.parse(req.body.currency);
     const currencySelected = currencies.find(
-      (currency) => currency.code === req.body.currency.code
+      (currency) => currency.code === parsedReqCurrency.code
     );
-    if (!req.body.currency || currencySelected) {
+    const currencyCheck = _.isEqual(currencySelected, parsedReqCurrency);
+    if (req.body.currency.length < 1 || !currencyCheck) {
       return res.render("auth/sign-up.ejs", {
         currencies,
         path: req.path,
@@ -151,6 +171,7 @@ router.post("/sign-up", async (req, res, next) => {
         failedUser: false,
         failedCurrency: true,
         failedSpecialChar: false,
+        user: req.user || null,
       });
     }
 
@@ -161,8 +182,8 @@ router.post("/sign-up", async (req, res, next) => {
     req.body.currency = currency;
 
     await User.create(req.body);
-
-    res.redirect("/auth/sign-in?newUser=true");
+    console.log("redirecting to signin");
+    res.redirect("/budgeo/auth/sign-in?newUser=true");
   } catch (e) {
     console.log("Cannot sign up", e);
     const err = {
@@ -180,7 +201,7 @@ router.get("/sign-out", (req, res) => {
       console.log("Session destruction error:", err);
     }
     res.clearCookie("budgeo.sid"); // Clear the session cookie
-    res.redirect("/budgeo");
+    res.redirect("/budgeo/auth/sign-in?signedOut=true");
   });
 });
 

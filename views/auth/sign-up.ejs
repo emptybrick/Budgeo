@@ -19,7 +19,10 @@
             <label class="label" for="username">Username:</label>
             <div class="control">
               <!-- pattern="[\\p{L}\\p{N}_]*" -->
-              <input class="input" type="text" name="username" id="username" minlength="3" maxlength="30" required />
+              <!-- minlength="3" maxlength="30" -->
+              <input class="input" type="text" name="username" id="username" pattern="[a-zA-Z0-9_]{3,15}"
+                title="Username must be 3-15 characters long and contain only letters, numbers, or underscores"
+                required />
             </div>
           </div>
           <div class="field">
@@ -49,22 +52,19 @@
               <input class="input" type="password" name="confirmPassword" id="confirmPassword" required />
             </div>
           </div>
-          <div class="notification is-primary has-text-centered" id="failed-login-message" <%=failedSpecialChar ? '' : 'hidden' %>>
+          <div class="notification is-primary has-text-centered" <%=failedSpecialChar ? '' : 'hidden' %>>
             <button class="delete" type="button" onclick="this.parentNode.hidden=true"></button>
             Username contains special characters.
           </div>
-          <div class="notification is-primary has-text-centered" id="failed-login-message" <%=failedUser ? '' : 'hidden'
-            %>>
+          <div class="notification is-primary has-text-centered" <%=failedUser ? '' : 'hidden' %>>
             <button class="delete" type="button" onclick="this.parentNode.hidden=true"></button>
             Username already taken.
           </div>
-          <div class="notification is-primary has-text-centered" id="failed-login-message" <%=failedPassword ? ''
-            : 'hidden' %>>
+          <div class="notification is-primary has-text-centered" <%=failedPassword ? '' : 'hidden' %>>
             <button class="delete" type="button" onclick="this.parentNode.hidden=true"></button>
             Password and Confirm Password must match.
           </div>
-          <div class="notification is-primary has-text-centered" id="failed-login-message" <%=failedCurrency ? ''
-            : 'hidden' %>>
+          <div class="notification is-primary has-text-centered" <%=failedCurrency ? '' : 'hidden' %>>
             <button class="delete" type="button" onclick="this.parentNode.hidden=true"></button>
             Currency option not selected or invalid.
           </div>

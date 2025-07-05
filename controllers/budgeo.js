@@ -25,7 +25,6 @@ router.get("/:username/expenses", async (req, res, next) => {
     res.render("budgeo/index.ejs", { expense, path, username, currency });
   } catch (error) {
     console.log(error);
-    // next(error)
     res.redirect("/budgeo");
   }
 });
@@ -267,18 +266,35 @@ router.delete("/:username/expenses/:expenseId", async (req, res, next) => {
   }
 });
 
-router.delete("/accountdeletion", async (req, res) => {
+router.delete("/accountdeletion", async (req, res, next) => {
   try {
+    const username = req.session.user.username;
     await User.findByIdAndDelete(req.session.user._id);
-    req.session.destroy((err) => {
-      if (err) {
-        console.log("Session destruction error:", err);
-      }
-      res.clearCookie("budgeo.sid"); // Clear the session cookie
-      res.redirect("/budgeo");
-    });
+    
+    try {
+      req.session.destroy((err) => {
+        if (err) {
+          console.log("Session destruction error:", err);
+        }
+        res.clearCookie("budgeo.sid"); // Clear the session cookie
+        res.render("thankyou.ejs", { username });
+      });
+    } catch (error) {
+      console.log("Session destruction error:", error);
+      const err = {
+        statusCode: 500,
+        reason:
+          "SOMETHING WENT WRONG WITH TRYING TO DELETE YOUR ACCOUNT. PLEASE TRY AGAIN LATER.",
+      };
+      next(err);
+    }
   } catch (error) {
-    console.log(error);
+    console.log("User find and delete error: ", error);
+    const err = {
+      statusCode: 404,
+      reason: "USER DOES NOT EXIST",
+    };
+    next(err);
   }
 });
 
