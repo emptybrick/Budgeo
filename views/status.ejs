@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Status <%= statusCode %> - Budgeo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Flatly Bulma theme via bootswatch CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulmaswatch@0.8.1/flatly/bulmaswatch.min.css">
   <style>
@@ -12,20 +12,22 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      /* justify-content: center; */
       align-items: center;
       background: #e0e0e0;
     }
+
     .logo-img {
       max-width: 250px;
       margin-bottom: 1.5rem;
     }
+
     .status-code {
       font-size: 8rem;
       font-weight: 900;
       margin-top: 5.75rem;
       color: #264d83;
     }
+
     .status-reason {
       font-size: 1.5rem;
       margin-bottom: 2rem;
@@ -35,18 +37,20 @@
     }
   </style>
 </head>
+
 <body>
   <section class="status-container">
-    <div class="status-code"><%= statusCode %></div>
+    <div class="status-code">
+      <%= statusCode %>
+    </div>
     <img src="/images/logo.png" alt="Budgeo Logo" class="logo-img">
     <div class="status-reason">
-      <%= reason || (statusCode === 404 ? "Page Not Found" : "Internal Server Error") %>
+      <%= reason || (statusCode===404 ? "Page Not Found" : "Internal Server Error" ) %>
     </div>
     <a href="/budgeo" class="button is-primary is-medium">
       Try Again
     </a>
   </section>
 </body>
+
 </html>
-
-

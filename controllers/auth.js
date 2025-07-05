@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const { currencies } = require("../public/js/serverUtils.js");
 const User = require("../models/user.js");
-const _ = require('lodash');
+const _ = require("lodash");
 
 router.get("/sign-in", (req, res) => {
   // If user is already signed in, redirect to home
@@ -68,8 +68,6 @@ router.post("/sign-in", async (req, res, next) => {
       }
 
       // There is a user AND they had the correct password. Time to make a session!
-      // Avoid storing the password, even in hashed format, in the session
-      // If there is other data you want to save to `req.session.user`, do so here!
       req.session.user = {
         username: userInDatabase.username,
         _id: userInDatabase._id,
@@ -114,7 +112,7 @@ router.get("/sign-up", (req, res) => {
 
 router.post("/sign-up", async (req, res, next) => {
   try {
-    // validate no special characters in username except _ 
+    // validate no special characters in username except _
     const regex = /^[a-zA-Z0-9_]{3,15}$/;
     if (!regex.test(req.body.username)) {
       return res.render("auth/sign-up.ejs", {
@@ -182,7 +180,6 @@ router.post("/sign-up", async (req, res, next) => {
     req.body.currency = currency;
 
     await User.create(req.body);
-    console.log("redirecting to signin");
     res.redirect("/budgeo/auth/sign-in?newUser=true");
   } catch (e) {
     console.log("Cannot sign up", e);

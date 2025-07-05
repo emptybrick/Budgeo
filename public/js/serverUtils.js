@@ -154,6 +154,7 @@ const currencies = [
   },
 ];
 
+// funny messages to display when 404 happens for a page that doesnt exist
 const reasonsByGrok = [
   `This URL just snorted a line of cosmic dust and moonwalked off the server."`,
   "Nope, nada, zilch! This page pulled a ninja smoke bomb and poofed into the digital abyss!",
@@ -167,6 +168,7 @@ const reasonsByGrok = [
   "Nice going, genius! You steered this page into a screaming dead end, and now it’s breakdancing in a digital dumpster!",
 ];
 
+// funny reasons for 404 on expense that doesnt exist
 const reasonsByGrokExpenses = [
   "Oops, Where’s the Receipt? This expense has vanished faster than your coffee budget at a hipster café!",
   "Budget Item AWOL! This expense slipped through the cracks like spare change in a couch cushion.",

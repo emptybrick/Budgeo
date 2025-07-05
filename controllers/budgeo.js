@@ -12,13 +12,6 @@ const {
 } = require("../public/js/serverUtils.js");
 const parseCurrency = require("parsecurrency");
 
-// parseCurrency is used to parse currency strings into numbers
-// Example usage:
-// const newValue = '5.000,00 €'
-// const formattedValue = parseCurrency(newValue);
-
-// router.use(isSignedIn)
-
 router.get("/:username/expenses", async (req, res, next) => {
   try {
     const { username, expense, currency, path } = await getUserData(User, req);
@@ -42,6 +35,7 @@ router.get("/:username/expenses/new", async (req, res) => {
 router.get("/:username/data", async (req, res) => {
   try {
     const { username, expense, currency, path } = await getUserData(User, req);
+    // functions to get data for piechart and totals for estimates
     const pieData = await pieChart(expense);
     const {
       formattedTotal: weeklyTotal,
@@ -63,6 +57,7 @@ router.get("/:username/data", async (req, res) => {
       formattedHigh: annuallyHigh,
       formattedLow: annuallyLow,
     } = getSchedulesFormatted(expense, "Annually", currency);
+    // sets an object with all the formatted totals to use in data.ejs
     const scheduleData = {
       weeklyTotal,
       weeklyHigh,
@@ -111,6 +106,7 @@ router.post("/:username/expenses", async (req, res) => {
     // and adds it to the expenseData object for later use
     // server uses UTC date and time for normalization
     // has a check to make sure no dupe month-year combos and cost field is valid
+    // parseCurrency is used to return a number from locale string
     if (expenseData.historical && expenseData.historical.length > 0) {
       let monthYearCombinations = [];
       expenseData.historical.forEach((entry) => {
@@ -216,6 +212,7 @@ router.put("/:username/expenses/:expenseId", async (req, res, next) => {
         entry.month = monthFromLocale(entry.month, currentUser.currency.locale);
         entry.year = yearFromLocale(entry.year, currentUser.currency.locale);
         entry.cost = parseCurrency(entry.cost).value;
+        // server side validation of month and year and cost recieved
         const monthYear = `${entry.month}-${entry.year}`;
         if (!monthYearCombinations.includes(monthYear)) {
           monthYearCombinations.push(monthYear);
@@ -270,7 +267,7 @@ router.delete("/accountdeletion", async (req, res, next) => {
   try {
     const username = req.session.user.username;
     await User.findByIdAndDelete(req.session.user._id);
-    
+
     try {
       req.session.destroy((err) => {
         if (err) {

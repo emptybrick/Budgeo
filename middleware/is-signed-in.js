@@ -1,4 +1,7 @@
-const { isSessionValid, refreshSession } = require("../public/js/sessionhelper.js")
+const {
+  isSessionValid,
+  refreshSession,
+} = require("../public/js/sessionhelper.js");
 
 //check if user is signed in with enhanced session validation
 const isSignedIn = (req, res, next) => {

@@ -7,7 +7,6 @@
   .box {
     background-color: #cdd1d7 !important;
     border: 2px solid #8e8e8e !important;
-    /* box-shadow: #34495e; */
   }
 
   .navbar-link.is-active,
@@ -89,30 +88,6 @@
   .navbar-burger {
     color: #ecf0f1 !important;
   }
-
-  /* @media screen and (min-width: 768px) {
-
-    .navbar-end,
-    .navbar-item,
-    .navbar-menu {
-      display: flex !important;
-      justify-content: flex-end !important;
-      margin-left: auto !important;
-      background-color: #34495e !important;
-    }
-
-    .navbar {
-      display: flex !important;
-    }
-
-    .navbar-end {
-      align-items: center !important;
-    }
-
-    .navbar-burger {
-      display: none !important;
-    }
-  } */
 
   @media screen and (width <=768px) {
     .button.main-link-button {
@@ -268,11 +243,8 @@
           </a>
           <div class="navbar-dropdown" style="background-color: #34495e !important; border: none;">
             <a class="navbar-item has-text-weight-bold has-text-white" href="/budgeo/auth/sign-out">Sign Out</a>
-            <!-- <hr class="navbar-divider"> -->
-            <!-- <div class="navbar-item has-text-weight-bold has-text-white"> -->
             <a class="navbar-item has-text-weight-bold has-text-white" id="delete-account"
               onclick="deleteAccountPopUp(this)">Delete Account</a>
-            <!-- </div> -->
           </div>
         </div>
 
@@ -285,6 +257,7 @@
   </div>
 </nav>
 <Script>
+  // function for burger icon to show and hide
   document.addEventListener('DOMContentLoaded', () => {
     const $navbarBurgers =
       Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
@@ -326,12 +299,12 @@
   // function to handle popup, gets the .section element and adds the new element as first child
   function deleteAccountPopUp(button) {
     const parentEl = document.querySelector('.section');
-  
-  // checks if the button text is Close if so it removes the parentx5 node to get the div
-  // that was created on new element to delete it all at once, then unhides the other elements
-  // under .section (parent element)
+
+    // checks if the button text is Close if so it removes the parentx5 node to get the div
+    // that was created on new element to delete it all at once, then unhides the other elements
+    // under .section (parent element)
     if (button.textContent === 'Close') {
-      button.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      button.parentNode.parentNode.parentNode.parentNode.parentNode.remove(); // LOL
       allChildNodes = parentEl.childNodes;
       allChildNodes.forEach(node => {
         node.hidden = false;
