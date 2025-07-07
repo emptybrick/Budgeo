@@ -243,15 +243,11 @@ function calculateVariableCost(historical) {
   const earliestDate = sortedDates.at(0);
   const latestDate = sortedDates.at(sortedDates.length - 1);
   const yearEarliest = earliestDate.getUTCFullYear();
-  const monthEarliest = earliestDate.getUTCMonth() + 1;
+  const monthEarliest = earliestDate.getUTCMonth();
   const yearLatest = latestDate.getUTCFullYear();
-  const monthLatest = latestDate.getUTCMonth() + 1;
-  const monthsLeftEarliest = Math.abs(monthEarliest - 12);
-  const MonthsCoveredLatest = monthLatest;
-  const yearDiff = Math.abs(yearEarliest - yearLatest) - 1;
-  const monthsOfYearDiff = yearDiff * 12;
+  const monthLatest = latestDate.getUTCMonth();
   const totalMonthsCovered =
-    monthsOfYearDiff + monthsLeftEarliest + MonthsCoveredLatest;
+    (yearLatest - yearEarliest) * 12 + (monthLatest - monthEarliest) + 1;
 
   // array of costs
   const costs = historical.map((entry) => entry.cost);
@@ -276,7 +272,7 @@ function calculateVariableCost(historical) {
   // Function to calculate the mean
   function calculateMean(array) {
     const sum = array.reduce((sum, value) => sum + value, 0);
-    return sum / totalMonthsCovered; // Use totalMonthsCovered like original code
+    return sum / totalMonthsCovered;
   }
 
   // Function to perform bootstrapping
@@ -310,7 +306,6 @@ function calculateVariableCost(historical) {
   const ciHigh = Number(ci.upper.toFixed(2));
   const ciLow = Number(ci.lower.toFixed(2));
   const averageCI = Number(((ciLow + ciHigh) / 2).toFixed(2));
-
   return {
     cost: averageCI,
     low: ciLow,

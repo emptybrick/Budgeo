@@ -12,7 +12,7 @@ const {
 } = require("../public/js/serverUtils.js");
 const parseCurrency = require("parsecurrency");
 
-router.get("/:username/expenses", async (req, res, next) => {
+router.get("/:username/expenses", async (req, res) => {
   try {
     const { username, expense, currency, path } = await getUserData(User, req);
     res.render("budgeo/index.ejs", { expense, path, username, currency });
