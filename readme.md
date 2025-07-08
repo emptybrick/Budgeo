@@ -1,7 +1,8 @@
 # **Budgeo**
 
-<img src="public/images/budgeo.png" alt="Budgeo" width="200">
-<img src="public/images/logo.png" alt="Budgeo Logo" width="100">
+<img src="public/images/logo.png" alt="Budgeo Logo" width="100"> <img src="public/images/budgeo.png" alt="Budgeo" width="200"> 
+or (for those in darkmode)
+<img src="public/images/logo-with-text-white.png" alt="Budgeo" width="200">
 
 **Budgeo** is a minimalist, server-rendered budgeting app built with Node.js, Express, EJS and MongoDB. It lets users sign up, track expenses, view financial summaries, and manage their account in a clean interface.
 
