@@ -8,7 +8,7 @@ const {
   getUserData,
   monthFromLocale,
   yearFromLocale,
-  reasonsByGrokExpenses,
+  reasons404Expenses,
 } = require("../public/js/serverUtils.js");
 const parseCurrency = require("parsecurrency");
 
@@ -18,7 +18,12 @@ router.get("/:username/expenses", async (req, res) => {
     res.render("budgeo/index.ejs", { expense, path, username, currency });
   } catch (error) {
     console.log(error);
-    res.redirect("/budgeo");
+    // res.redirect("/budgeo");
+    const err = {
+      statusCode: 500,
+      reason: "UNABLE TO ACCESS EXPENSES!",
+    };
+    return next(err);
   }
 });
 
@@ -28,7 +33,12 @@ router.get("/:username/expenses/new", async (req, res) => {
     res.render("budgeo/new.ejs", { path, expense, currency, username });
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo/${req.params.username}/expenses`);
+    // res.redirect(`/budgeo/${req.params.username}/expenses`);
+    const err = {
+      statusCode: 500,
+      reason: "UNABLE ACCESS THE NEW EXPENSE FORM!",
+    };
+    return next(err);
   }
 });
 
@@ -82,7 +92,12 @@ router.get("/:username/data", async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo/${req.params.username}/expenses`);
+    // res.redirect(`/budgeo/${req.params.username}/expenses`);
+    const err = {
+      statusCode: 500,
+      reason: "UNABLE TO ACCESS FINANCIAL DATA!",
+    };
+    return next(err);
   }
 });
 
@@ -117,10 +132,10 @@ router.post("/:username/expenses", async (req, res) => {
         if (!monthYearCombinations.includes(monthYear)) {
           monthYearCombinations.push(monthYear);
         } else {
-          throw new Error("Duplicate month and year in data!");
+          throw new Error("DUPLICATE MONTH AND YEAR IN FORM!");
         }
         if (entry.cost < 0 || !Number(entry.cost) || entry.cost > 100000000) {
-          throw new Error("Invalid Cost!");
+          throw new Error("INVALID COST IN FORM!");
         }
       });
       const historical = expenseData.historical.map((entry) => ({
@@ -140,7 +155,21 @@ router.post("/:username/expenses", async (req, res) => {
     res.redirect(`/budgeo/${req.params.username}/expenses`);
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo/${req.params.username}/expenses`);
+    let e;
+    if (
+      error === "DUPLICATE MONTH AND YEAR IN FORM!" ||
+      error === "INVALID COST IN FORM!"
+    ) {
+      e = error;
+    } else {
+      e = "FAILED TO ADD NEW EXPENSE!";
+    }
+    const err = {
+      statusCode: 500,
+      reason: e,
+    };
+    return next(err);
+    // res.redirect(`/budgeo/${req.params.username}/expenses`);
   }
 });
 
@@ -154,16 +183,19 @@ router.get("/:username/expenses/:expenseId/edit", async (req, res, next) => {
     if (!expense) {
       const err = {
         statusCode: 404,
-        reason: reasonsByGrokExpenses[[Math.floor(Math.random() * 10)]],
+        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
       };
       return next(err);
     }
     res.render("budgeo/edit.ejs", { expense, currency, path, username });
   } catch (error) {
     console.log(error);
-    res.redirect(
-      `/budgeo/${req.params.username}/expenses/${req.params.expenseId}`
-    );
+    // res.redirect(`/budgeo/${req.params.username}/expenses/${req.params.expenseId}`);
+    const err = {
+      statusCode: 500,
+      reason: "FAILED TO FIND EXPENSE FORM FOR EDITTING!",
+    };
+    return next(err);
   }
 });
 
@@ -177,14 +209,19 @@ router.get("/:username/expenses/:expenseId", async (req, res, next) => {
     if (!expense) {
       const err = {
         statusCode: 404,
-        reason: reasonsByGrokExpenses[[Math.floor(Math.random() * 10)]],
+        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
       };
       return next(err);
     }
     res.render("budgeo/show.ejs", { expense, path, currency, username });
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo/${req.params.username}/expenses`);
+    // res.redirect(`/budgeo/${req.params.username}/expenses`);
+    const err = {
+      statusCode: 500,
+      reason: "FAILED TO LOCATED THE EXPENSE DETAILS PAGE!",
+    };
+    return next(err);
   }
 });
 
@@ -194,7 +231,7 @@ router.put("/:username/expenses/:expenseId", async (req, res, next) => {
     if (!expense) {
       const err = {
         statusCode: 404,
-        reason: reasonsByGrokExpenses[[Math.floor(Math.random() * 10)]],
+        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
       };
       return next(err);
     }
@@ -217,10 +254,10 @@ router.put("/:username/expenses/:expenseId", async (req, res, next) => {
         if (!monthYearCombinations.includes(monthYear)) {
           monthYearCombinations.push(monthYear);
         } else {
-          throw new Error("Duplicate month and year in data!");
+          throw new Error("DUPLICATE MONTH AND YEAR IN DATA!");
         }
         if (entry.cost < 0 || !Number(entry.cost) || entry.cost > 100000000) {
-          throw new Error("Invalid Cost!");
+          throw new Error("INVALID COST!");
         }
       });
       const historical = req.body.historical.map((entry) => ({
@@ -238,9 +275,21 @@ router.put("/:username/expenses/:expenseId", async (req, res, next) => {
     res.redirect(`/budgeo/${req.params.username}/expenses/${expense._id}`);
   } catch (error) {
     console.log(error);
-    res.redirect(
-      `/budgeo/${req.params.username}/expenses/${req.params.expenseId}`
-    );
+    // res.redirect(`/budgeo/${req.params.username}/expenses/${req.params.expenseId}`);
+    let e;
+    if (
+      error === "DUPLICATE MONTH AND YEAR IN FORM!" ||
+      error === "INVALID COST IN FORM!"
+    ) {
+      e = error;
+    } else {
+      e = "FAILED TO UPDATE EXPENSE!";
+    }
+    const err = {
+      statusCode: 500,
+      reason: e,
+    };
+    return next(err);
   }
 });
 
@@ -250,7 +299,7 @@ router.delete("/:username/expenses/:expenseId", async (req, res, next) => {
     if (!expense) {
       const err = {
         statusCode: 404,
-        reason: reasonsByGrokExpenses[[Math.floor(Math.random() * 10)]],
+        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
       };
       return next(err);
     }
@@ -259,7 +308,12 @@ router.delete("/:username/expenses/:expenseId", async (req, res, next) => {
     res.redirect(`/budgeo/${req.params.username}/expenses`);
   } catch (error) {
     console.log(error);
-    res.redirect(`/budgeo/${req.params.username}/expenses`);
+    // res.redirect(`/budgeo/${req.params.username}/expenses`);
+    const err = {
+      statusCode: 500,
+      reason: "FAILED TO DELETE EXPENSE!",
+    };
+    return next(err);
   }
 });
 
@@ -267,15 +321,10 @@ router.delete("/accountdeletion", async (req, res, next) => {
   try {
     const username = req.session.user.username;
     await User.findByIdAndDelete(req.session.user._id);
-
     try {
-      req.session.destroy((err) => {
-        if (err) {
-          console.log("Session destruction error:", err);
-        }
-        res.clearCookie("budgeo.sid"); // Clear the session cookie
-        res.render("thankyou.ejs", { username });
-      });
+      req.session.destroy();
+      res.clearCookie("budgeo.sid"); // Clear the session cookie
+      res.render("thankyou.ejs", { username });
     } catch (error) {
       console.log("Session destruction error:", error);
       const err = {

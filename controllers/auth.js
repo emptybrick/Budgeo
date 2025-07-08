@@ -98,16 +98,25 @@ router.post("/sign-in", async (req, res, next) => {
 });
 
 router.get("/sign-up", (req, res) => {
-  const path = req.path;
-  res.render("auth/sign-up.ejs", {
-    currencies,
-    path,
-    failedUser: false,
-    failedPassword: false,
-    failedCurrency: false,
-    failedSpecialChar: false,
-    user: req.user || null,
-  });
+  try {
+    const path = req.path;
+    res.render("auth/sign-up.ejs", {
+      currencies,
+      path,
+      failedUser: false,
+      failedPassword: false,
+      failedCurrency: false,
+      failedSpecialChar: false,
+      user: req.user || null,
+    });
+  } catch (e) {
+    console.log(e);
+    const err = {
+      statusCode: 500,
+      reason: "CANNOT LOCATE THE SIGN-UP PAGE!",
+    };
+    return next(err);
+  }
 });
 
 router.post("/sign-up", async (req, res, next) => {
@@ -193,13 +202,26 @@ router.post("/sign-up", async (req, res, next) => {
 
 router.get("/sign-out", (req, res) => {
   // Destroy session and clear cookie
-  req.session.destroy((err) => {
-    if (err) {
-      console.log("Session destruction error:", err);
-    }
-    res.clearCookie("budgeo.sid"); // Clear the session cookie
-    res.redirect("/budgeo/auth/sign-in?signedOut=true");
-  });
+  try {
+    req.session.destroy((error) => {
+      if (error) {
+        console.log("Session destruction error:", error);
+        const err = {
+          statusCode: 500,
+          reason: `USER SIGN OUT FAILED.`,
+        };
+        next({ err });
+      }
+      res.clearCookie("budgeo.sid"); // Clear the session cookie
+      res.redirect("/budgeo/auth/sign-in?signedOut=true");
+    });
+  } catch (e) {
+    const err = {
+      statusCode: 500,
+      reason: `USER SIGN OUT FAILED.`,
+    };
+    next({ err });
+  }
 });
 
 module.exports = router;

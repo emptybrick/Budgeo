@@ -12,7 +12,7 @@ const budgeoController = require('./controllers/budgeo.js');
 
 const isSignedIn = require('./middleware/is-signed-in.js');
 const passUserToView = require('./middleware/pass-user-to-view.js');
-const { reasonsByGrok } = require('./public/js/serverUtils.js');
+const { reasons404 } = require('./public/js/serverUtils.js');
 
 const port = process.env.PORT ? process.env.PORT : '3000';
 
@@ -71,7 +71,7 @@ app.use("/budgeo", budgeoController);
 
 // catch all for 404
 app.use('/*splat', (req, res) => {
-  const reason = reasonsByGrok[Math.floor(Math.random()*10)];
+  const reason = reasons404[Math.floor(Math.random()*10)];
   const statusCode = 404 
   res.render('status.ejs', { reason, statusCode })
 })

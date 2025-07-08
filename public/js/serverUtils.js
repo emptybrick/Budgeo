@@ -155,25 +155,25 @@ const currencies = [
 ];
 
 // funny messages to display when 404 happens for a page that doesnt exist
-const reasonsByGrok = [
-  `This URL just snorted a line of cosmic dust and moonwalked off the server."`,
+const reasons404 = [
+  `This URL just moonwalked off the server."`,
   "Nope, nada, zilch! This page pulled a ninja smoke bomb and poofed into the digital abyss!",
-  "This page just hijacked a UFO, flipped the bird, and zoomed off to party with aliens!",
-  "Error? Nah, this page just snorted glitter, declared itself emperor of the void, and ghosted us!",
-  "Page not found. It’s probably moshing in a digital rave, slamming shots with rogue pixels!",
+  "This page just hijacked a UFO, and zoomed off to party with aliens!",
+  "Error? Nah, this page just declared itself emperor of the void, and ghosted us!",
+  "Page not found. It’s probably in a digital rave with rogue pixels!",
   "This URL went feral, chewed through the server cables, and is now howling at the binary moon!",
-  "Page not found. It’s out there riding a flaming comet, cackling like a mad scientist on bath salts!",
-  "You broke it, genius! This page saw your URL, laughed, and noped out to join a cult in cyberspace!",
-  "Congrats, you typed a URL so cursed it made the page scream 'I’M OUT!' and shred itself into digital confetti!",
-  "Nice going, genius! You steered this page into a screaming dead end, and now it’s breakdancing in a digital dumpster!",
+  "Page not found. It’s out there riding a flaming comet, cackling like a mad scientist!",
+  "You broke it, genius!",
+  "Congrats, you typed the URL incorrectly.'",
+  "Nice going. You steered this page into a dead end!",
 ];
 
 // funny reasons for 404 on expense that doesnt exist
-const reasonsByGrokExpenses = [
-  "Oops, Where’s the Receipt? This expense has vanished faster than your coffee budget at a hipster café!",
+const reasons404Expenses = [
+  "Oops, Where’s the Receipt? This expense has vanished faster than your coffee budget!",
   "Budget Item AWOL! This expense slipped through the cracks like spare change in a couch cushion.",
   "Expense Missing in Action! We searched high and low, but this expense is hiding better than your secret snack stash.",
-  "Where’s the Money Gone? This expense ghosted your budget like a bad Tinder date.",
+  "Where’s the Money Gone? This expense ghosted your budget.",
   "Expense Not in the Ledger! It’s either on a spending spree or got lost in the black hole of 'miscellaneous.'",
   "Financial Fugitive Alert! This expense is on the run, last seen fleeing your spreadsheet.",
   "Expense Evaporated! Poof! This item vanished like your paycheck on rent day.",
@@ -248,7 +248,6 @@ function calculateVariableCost(historical) {
   const monthLatest = latestDate.getUTCMonth();
   const totalMonthsCovered =
     (yearLatest - yearEarliest) * 12 + (monthLatest - monthEarliest) + 1;
-
   // array of costs
   const costs = historical.map((entry) => entry.cost);
 
@@ -503,6 +502,6 @@ module.exports = {
   pieChart,
   getSchedulesFormatted,
   getUserData,
-  reasonsByGrok,
-  reasonsByGrokExpenses,
+  reasons404,
+  reasons404Expenses,
 };

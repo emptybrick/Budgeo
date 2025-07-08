@@ -46,6 +46,14 @@ or (for those in darkmode)
 
 ---
 
+## **Libraries Used**
+
+* charts.js
+* parsecurrency
+* lodash
+
+---
+
 ## **Prerequisites**
 
 * Node.js v14 or higher  
@@ -127,7 +135,7 @@ Create `.env` and set:
 
 ---
 
-## **API Endpoints**
+## **ERD**
 
 | Method | Path | Description |
 | ----- | ----- | ----- |
