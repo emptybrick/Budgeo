@@ -1,6 +1,6 @@
 # **Budgeo**
 
-<img src="public/images/budgeo.png" alt="Budgeo" width="200"> <img src="public/images/logo.png" alt="Budgeo Logo" width="100">
+<img src="public/images/logo.png" alt="Budgeo Logo" width="100"> <img src="public/images/budgeo.png" alt="Budgeo" width="200"> 
 or (for those in darkmode)
 <img src="public/images/logo-with-text-white.png" alt="Budgeo" width="200">
 
