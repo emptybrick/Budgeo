@@ -188,6 +188,7 @@ async function getUserData(User, req, type) {
   if (!currentUser) {
     throw new Error("User not Found");
   }
+  console.log(currentUser)
   const username = currentUser.username;
   const currency = currentUser.currency;
   const path = req.path;
@@ -196,9 +197,6 @@ async function getUserData(User, req, type) {
     expense = currentUser.budget.id(req.params.expenseId);
   } else {
     expense = currentUser.budget;
-  }
-  if (!expense) {
-    expense = []
   }
   return { username, expense, currency, path, currentUser };
 }
