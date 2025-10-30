@@ -183,20 +183,21 @@ const reasons404Expenses = [
 ];
 
 // gets user data for server
-async function getUserData(User, req, type) {
-  const currentUser = await User.findById(req.session.user._id);
-  if (!currentUser) {
-    throw new Error("User not Found");
-  }
+async function getUserData (User, req, type) {
+  if (!req.user) throw new Error("Unauthorized");
+
+  const currentUser = req.user; // ← NO MORE MONGO LOOKUP
   const username = currentUser.username;
   const currency = currentUser.currency;
   const path = req.path;
   let expense;
+
   if (type === "getId") {
     expense = currentUser.budget.id(req.params.expenseId);
   } else {
     expense = currentUser.budget;
   }
+
   return { username, expense, currency, path, currentUser };
 }
 

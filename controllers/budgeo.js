@@ -1,3 +1,4 @@
+// controllers/budgeo.js
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user.js");
@@ -12,335 +13,238 @@ const {
 } = require("../public/js/serverUtils.js");
 const parseCurrency = require("parsecurrency");
 
-router.get("/:username/expenses", async (req, res) => {
+// ──────────────────────────────────────────────────────────────
+// GET /:username/expenses → Main Dashboard
+// ──────────────────────────────────────────────────────────────
+router.get("/:username/expenses", async (req, res, next) => {
   try {
-    const { username, expense, currency, path } = await getUserData(User, req);
-    res.render("budgeo/index.ejs", { expense, path, username, currency });
-  } catch (error) {
-    console.log(error);
-    // res.redirect("/budgeo");
-    const err = {
-      statusCode: 500,
-      reason: "UNABLE TO ACCESS EXPENSES!",
-    };
-    return next(err);
+    const { username, expense: expenses, currency, path } = await getUserData(User, req);
+    res.render("budgeo/index.ejs", { expenses, path, username, currency });
+  } catch (err) {
+    console.error("Expenses page error:", err);
+    return next({ statusCode: 500, reason: "UNABLE TO ACCESS EXPENSES!" });
   }
 });
 
-router.get("/:username/expenses/new", async (req, res) => {
+// ──────────────────────────────────────────────────────────────
+// GET /:username/expenses/new → New Expense Form
+// ──────────────────────────────────────────────────────────────
+router.get("/:username/expenses/new", async (req, res, next) => {
   try {
-    const { expense, currency, path, username } = await getUserData(User, req);
-    res.render("budgeo/new.ejs", { path, expense, currency, username });
-  } catch (error) {
-    console.log(error);
-    // res.redirect(`/budgeo/${req.params.username}/expenses`);
-    const err = {
-      statusCode: 500,
-      reason: "UNABLE ACCESS THE NEW EXPENSE FORM!",
-    };
-    return next(err);
+    const { expense: _, currency, path, username } = await getUserData(User, req);
+    res.render("budgeo/new.ejs", { path, currency, username });
+  } catch (err) {
+    console.error("New expense form error:", err);
+    return next({ statusCode: 500, reason: "UNABLE TO LOAD NEW EXPENSE FORM!" });
   }
 });
 
-router.get("/:username/data", async (req, res) => {
+// ──────────────────────────────────────────────────────────────
+// GET /:username/data → Charts + Totals
+// ──────────────────────────────────────────────────────────────
+router.get("/:username/data", async (req, res, next) => {
   try {
-    const { username, expense, currency, path } = await getUserData(User, req);
-    // functions to get data for piechart and totals for estimates
-    const pieData = await pieChart(expense);
-    const {
-      formattedTotal: weeklyTotal,
-      formattedHigh: weeklyHigh,
-      formattedLow: weeklyLow,
-    } = getSchedulesFormatted(expense, "Weekly", currency);
-    const {
-      formattedTotal: monthlyTotal,
-      formattedHigh: monthlyHigh,
-      formattedLow: monthlyLow,
-    } = getSchedulesFormatted(expense, "Monthly", currency);
-    const {
-      formattedTotal: quarterlyTotal,
-      formattedHigh: quarterlyHigh,
-      formattedLow: quarterlyLow,
-    } = getSchedulesFormatted(expense, "Quarterly", currency);
-    const {
-      formattedTotal: annuallyTotal,
-      formattedHigh: annuallyHigh,
-      formattedLow: annuallyLow,
-    } = getSchedulesFormatted(expense, "Annually", currency);
-    // sets an object with all the formatted totals to use in data.ejs
+    const { username, expense: expenses, currency, path } = await getUserData(User, req);
+
+    const pieData = await pieChart(expenses);
     const scheduleData = {
-      weeklyTotal,
-      weeklyHigh,
-      weeklyLow,
-      monthlyTotal,
-      monthlyHigh,
-      monthlyLow,
-      quarterlyTotal,
-      quarterlyHigh,
-      quarterlyLow,
-      annuallyTotal,
-      annuallyHigh,
-      annuallyLow,
+      weekly: getSchedulesFormatted(expenses, "Weekly", currency),
+      monthly: getSchedulesFormatted(expenses, "Monthly", currency),
+      quarterly: getSchedulesFormatted(expenses, "Quarterly", currency),
+      annually: getSchedulesFormatted(expenses, "Annually", currency),
     };
+
     res.render("budgeo/data.ejs", {
-      expense,
+      expenses,
       path,
       pieData,
       scheduleData,
       username,
       currency,
     });
-  } catch (error) {
-    console.log(error);
-    // res.redirect(`/budgeo/${req.params.username}/expenses`);
-    const err = {
-      statusCode: 500,
-      reason: "UNABLE TO ACCESS FINANCIAL DATA!",
-    };
-    return next(err);
+  } catch (err) {
+    console.error("Data page error:", err);
+    return next({ statusCode: 500, reason: "UNABLE TO ACCESS FINANCIAL DATA!" });
   }
 });
 
-router.post("/:username/expenses", async (req, res) => {
+// ──────────────────────────────────────────────────────────────
+// POST /:username/expenses → Create Expense
+// ──────────────────────────────────────────────────────────────
+router.post("/:username/expenses", async (req, res, next) => {
   try {
     const { currentUser } = await getUserData(User, req);
-    if (!req.body.cost) {
-      req.body.cost = "0";
-    }
+    const cost = parseCurrency(req.body.cost || "0").value;
+
     const expenseData = {
       name: req.body.name,
       type: req.body.type,
       schedule: req.body.schedule,
-      cost: parseCurrency(req.body.cost).value,
+      cost,
       costType: req.body.costType,
-      notes: req.body.notes || "", // Ensure notes is a string, default to empty if not provided
-      historical: req.body.historical,
+      notes: req.body.notes || "",
     };
-    // maps historical data to a date and cost format
-    // and calculates the variable cost if historical data is provided
-    // and adds it to the expenseData object for later use
-    // server uses UTC date and time for normalization
-    // has a check to make sure no dupe month-year combos and cost field is valid
-    // parseCurrency is used to return a number from locale string
-    if (expenseData.historical && expenseData.historical.length > 0) {
-      let monthYearCombinations = [];
-      expenseData.historical.forEach((entry) => {
-        entry.month = monthFromLocale(entry.month, currentUser.currency.locale);
-        entry.year = yearFromLocale(entry.year, currentUser.currency.locale);
-        entry.cost = parseCurrency(entry.cost).value;
-        const monthYear = `${entry.month}-${entry.year}`;
-        if (!monthYearCombinations.includes(monthYear)) {
-          monthYearCombinations.push(monthYear);
-        } else {
-          throw new Error("DUPLICATE MONTH AND YEAR IN FORM!");
-        }
-        if (entry.cost < 0 || !Number(entry.cost) || entry.cost > 100000000) {
-          throw new Error("INVALID COST IN FORM!");
-        }
-      });
-      const historical = expenseData.historical.map((entry) => ({
-        date: new Date(Date.UTC(`${entry.year}`, `${entry.month}`, 1, 0, 0, 0)),
-        cost: entry.cost,
-      }));
-      const { cost, high, low } = calculateVariableCost(historical);
-      expenseData.cost = cost;
+
+    // Handle historical data
+    if (req.body.historical && Array.isArray(req.body.historical) && req.body.historical.length > 0) {
+      const seen = new Set();
+      const historical = req.body.historical.map(entry => {
+        const month = monthFromLocale(entry.month, currentUser.currency.locale);
+        const year = yearFromLocale(entry.year, currentUser.currency.locale);
+        const cost = parseCurrency(entry.cost).value;
+
+        const key = `${ month }-${ year }`;
+        if (seen.has(key)) throw new Error("DUPLICATE MONTH AND YEAR IN FORM!");
+        if (cost < 0 || cost > 100000000) throw new Error("INVALID COST IN FORM!");
+        seen.add(key);
+
+        return { date: new Date(Date.UTC(year, month, 1)), cost };
+      }).sort((a, b) => a.date - b.date);
+
+      const { cost: avg, high, low } = calculateVariableCost(historical);
+      expenseData.cost = avg;
       expenseData.costHigh = high;
       expenseData.costLow = low;
-      expenseData.historical = historical.sort((a, b) => a.date - b.date);
+      expenseData.historical = historical;
     }
 
     currentUser.budget.push(expenseData);
     await currentUser.save();
 
-    res.redirect(`/budgeo/${req.params.username}/expenses`);
-  } catch (error) {
-    console.log(error);
-    let e;
-    if (
-      error === "DUPLICATE MONTH AND YEAR IN FORM!" ||
-      error === "INVALID COST IN FORM!"
-    ) {
-      e = error;
-    } else {
-      e = "FAILED TO ADD NEW EXPENSE!";
-    }
-    const err = {
-      statusCode: 500,
-      reason: e,
-    };
-    return next(err);
-    // res.redirect(`/budgeo/${req.params.username}/expenses`);
+    res.redirect(`/budgeo/${ req.params.username }/expenses`);
+  } catch (err) {
+    console.error("Create expense error:", err);
+    const reason = err.message.includes("DUPLICATE") || err.message.includes("INVALID")
+      ? err.message
+      : "FAILED TO ADD NEW EXPENSE!";
+    return next({ statusCode: 500, reason });
   }
 });
 
+// ──────────────────────────────────────────────────────────────
+// GET /:username/expenses/:expenseId/edit
+// ──────────────────────────────────────────────────────────────
 router.get("/:username/expenses/:expenseId/edit", async (req, res, next) => {
   try {
-    const { expense, currency, path, username } = await getUserData(
-      User,
-      req,
-      "getId"
-    );
+    const { expense, currency, path, username } = await getUserData(User, req, "getId");
     if (!expense) {
-      const err = {
-        statusCode: 404,
-        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
-      };
-      return next(err);
+      const reason = reasons404Expenses[ Math.floor(Math.random() * reasons404Expenses.length) ];
+      return next({ statusCode: 404, reason });
     }
     res.render("budgeo/edit.ejs", { expense, currency, path, username });
-  } catch (error) {
-    console.log(error);
-    // res.redirect(`/budgeo/${req.params.username}/expenses/${req.params.expenseId}`);
-    const err = {
-      statusCode: 500,
-      reason: "FAILED TO FIND EXPENSE FORM FOR EDITTING!",
-    };
-    return next(err);
+  } catch (err) {
+    console.error("Edit form error:", err);
+    return next({ statusCode: 500, reason: "FAILED TO LOAD EDIT FORM!" });
   }
 });
 
+// ──────────────────────────────────────────────────────────────
+// GET /:username/expenses/:expenseId → Show One
+// ──────────────────────────────────────────────────────────────
 router.get("/:username/expenses/:expenseId", async (req, res, next) => {
   try {
-    const { expense, currency, path, username } = await getUserData(
-      User,
-      req,
-      "getId"
-    );
+    const { expense, currency, path, username } = await getUserData(User, req, "getId");
     if (!expense) {
-      const err = {
-        statusCode: 404,
-        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
-      };
-      return next(err);
+      const reason = reasons404Expenses[ Math.floor(Math.random() * reasons404Expenses.length) ];
+      return next({ statusCode: 404, reason });
     }
     res.render("budgeo/show.ejs", { expense, path, currency, username });
-  } catch (error) {
-    console.log(error);
-    // res.redirect(`/budgeo/${req.params.username}/expenses`);
-    const err = {
-      statusCode: 500,
-      reason: "FAILED TO LOCATED THE EXPENSE DETAILS PAGE!",
-    };
-    return next(err);
+  } catch (err) {
+    console.error("Show expense error:", err);
+    return next({ statusCode: 500, reason: "FAILED TO LOAD EXPENSE DETAILS!" });
   }
 });
 
+// ──────────────────────────────────────────────────────────────
+// PUT /:username/expenses/:expenseId → Update
+// ──────────────────────────────────────────────────────────────
 router.put("/:username/expenses/:expenseId", async (req, res, next) => {
   try {
     const { expense, currentUser } = await getUserData(User, req, "getId");
     if (!expense) {
-      const err = {
-        statusCode: 404,
-        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
-      };
-      return next(err);
+      const reason = reasons404Expenses[ Math.floor(Math.random() * reasons404Expenses.length) ];
+      return next({ statusCode: 404, reason });
     }
-    if (!req.body.cost) {
-      req.body.cost = "0";
-    }
-    req.body.cost = parseCurrency(req.body.cost).value;
-    req.body.notes = req.body.notes || ""; // Ensure notes is a string, default to empty if not provided
 
-    // If historical data is provided, update it
-    // same setup as the post new code checks validity
-    if (req.body.historical && req.body.historical.length > 0) {
-      let monthYearCombinations = [];
-      req.body.historical.forEach((entry) => {
-        entry.month = monthFromLocale(entry.month, currentUser.currency.locale);
-        entry.year = yearFromLocale(entry.year, currentUser.currency.locale);
-        entry.cost = parseCurrency(entry.cost).value;
-        // server side validation of month and year and cost recieved
-        const monthYear = `${entry.month}-${entry.year}`;
-        if (!monthYearCombinations.includes(monthYear)) {
-          monthYearCombinations.push(monthYear);
-        } else {
-          throw new Error("DUPLICATE MONTH AND YEAR IN DATA!");
-        }
-        if (entry.cost < 0 || !Number(entry.cost) || entry.cost > 100000000) {
-          throw new Error("INVALID COST!");
-        }
-      });
-      const historical = req.body.historical.map((entry) => ({
-        date: new Date(Date.UTC(`${entry.year}`, `${entry.month}`, 1, 0, 0, 0)),
-        cost: entry.cost,
-      }));
-      const { cost, high, low } = calculateVariableCost(historical);
-      req.body.cost = cost;
+    const cost = parseCurrency(req.body.cost || "0").value;
+    req.body.cost = cost;
+    req.body.notes = req.body.notes || "";
+
+    if (req.body.historical && Array.isArray(req.body.historical) && req.body.historical.length > 0) {
+      const seen = new Set();
+      const historical = req.body.historical.map(entry => {
+        const month = monthFromLocale(entry.month, currentUser.currency.locale);
+        const year = yearFromLocale(entry.year, currentUser.currency.locale);
+        const cost = parseCurrency(entry.cost).value;
+
+        const key = `${ month }-${ year }`;
+        if (seen.has(key)) throw new Error("DUPLICATE MONTH AND YEAR IN DATA!");
+        if (cost < 0 || cost > 100000000) throw new Error("INVALID COST!");
+        seen.add(key);
+
+        return { date: new Date(Date.UTC(year, month, 1)), cost };
+      }).sort((a, b) => a.date - b.date);
+
+      const { cost: avg, high, low } = calculateVariableCost(historical);
+      req.body.cost = avg;
       req.body.costHigh = high;
       req.body.costLow = low;
-      req.body.historical = historical.sort((a, b) => a.date - b.date);
+      req.body.historical = historical;
     }
+
     expense.set(req.body);
     await currentUser.save();
-    res.redirect(`/budgeo/${req.params.username}/expenses/${expense._id}`);
-  } catch (error) {
-    console.log(error);
-    // res.redirect(`/budgeo/${req.params.username}/expenses/${req.params.expenseId}`);
-    let e;
-    if (
-      error === "DUPLICATE MONTH AND YEAR IN FORM!" ||
-      error === "INVALID COST IN FORM!"
-    ) {
-      e = error;
-    } else {
-      e = "FAILED TO UPDATE EXPENSE!";
-    }
-    const err = {
-      statusCode: 500,
-      reason: e,
-    };
-    return next(err);
+    res.redirect(`/budgeo/${ req.params.username }/expenses/${ expense._id }`);
+  } catch (err) {
+    console.error("Update expense error:", err);
+    const reason = err.message.includes("DUPLICATE") || err.message.includes("INVALID")
+      ? err.message
+      : "FAILED TO UPDATE EXPENSE!";
+    return next({ statusCode: 500, reason });
   }
 });
 
+// ──────────────────────────────────────────────────────────────
+// DELETE /:username/expenses/:expenseId
+// ──────────────────────────────────────────────────────────────
 router.delete("/:username/expenses/:expenseId", async (req, res, next) => {
   try {
-    const { expense, currentUser } = await getUserData(User, req, "getId");
-    if (!expense) {
-      const err = {
-        statusCode: 404,
-        reason: reasons404Expenses[[Math.floor(Math.random() * 10)]],
-      };
-      return next(err);
+    const { currentUser } = await getUserData(User, req, "getId");
+    const result = await currentUser.budget.pull({ _id: req.params.expenseId });
+    if (!result) {
+      const reason = reasons404Expenses[ Math.floor(Math.random() * reasons404Expenses.length) ];
+      return next({ statusCode: 404, reason });
     }
-    expense.deleteOne();
     await currentUser.save();
-    res.redirect(`/budgeo/${req.params.username}/expenses`);
-  } catch (error) {
-    console.log(error);
-    // res.redirect(`/budgeo/${req.params.username}/expenses`);
-    const err = {
-      statusCode: 500,
-      reason: "FAILED TO DELETE EXPENSE!",
-    };
-    return next(err);
+    res.redirect(`/budgeo/${ req.params.username }/expenses`);
+  } catch (err) {
+    console.error("Delete expense error:", err);
+    return next({ statusCode: 500, reason: "FAILED TO DELETE EXPENSE!" });
   }
 });
 
+// ──────────────────────────────────────────────────────────────
+// DELETE /accountdeletion → Delete Account
+// ──────────────────────────────────────────────────────────────
 router.delete("/accountdeletion", async (req, res, next) => {
   try {
-    const username = req.session.user.username;
-    await User.findByIdAndDelete(req.session.user._id);
-    try {
-      req.session.destroy();
-      res.clearCookie("budgeo.sid"); // Clear the session cookie
-      res.render("thankyou.ejs", { username });
-    } catch (error) {
-      console.log("Session destruction error:", error);
-      const err = {
-        statusCode: 500,
-        reason:
-          "SOMETHING WENT WRONG WITH TRYING TO DELETE YOUR ACCOUNT. PLEASE TRY AGAIN LATER.",
-      };
-      next(err);
+    if (!req.user) {
+      return next({ statusCode: 401, reason: "NOT AUTHORIZED" });
     }
-  } catch (error) {
-    console.log("User find and delete error: ", error);
-    const err = {
-      statusCode: 404,
-      reason: "USER DOES NOT EXIST",
-    };
-    next(err);
+
+    await User.findByIdAndDelete(req.user._id);
+    req.logout(() => {
+      req.session.destroy(() => {
+        res.clearCookie("budgeo.sid");
+        res.render("thankyou.ejs", { username: req.user.username });
+      });
+    });
+  } catch (err) {
+    console.error("Account deletion error:", err);
+    return next({
+      statusCode: 500,
+      reason: "FAILED TO DELETE ACCOUNT. PLEASE TRY AGAIN.",
+    });
   }
 });
 

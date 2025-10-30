@@ -1,29 +1,29 @@
-const dotenv = require('dotenv');
-dotenv.config();
-const express = require('express');
+// server.js
+require("dotenv").config();
+
+const express = require("express");
 const app = express();
-const mongoose = require('mongoose');
-const methodOverride = require('method-override');
-const session = require('express-session');
+const mongoose = require("mongoose");
+const methodOverride = require("method-override");
+const session = require("express-session");
 const MongoStore = require("connect-mongo");
-
-const authController = require('./controllers/auth.js');
-const budgeoController = require('./controllers/budgeo.js');
-
-const isSignedIn = require('./middleware/is-signed-in.js');
-const passUserToView = require('./middleware/pass-user-to-view.js');
-const { reasons404 } = require('./public/js/serverUtils.js');
-
-const port = process.env.PORT ? process.env.PORT : '3000';
-
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const User = require("./models/user");
+const bcrypt = require("bcrypt"); // <-- YOU NEED THIS
 
-// Serialize
+const User = require("./models/user");
+const authController = require("./controllers/auth.js");
+const budgeoController = require("./controllers/budgeo.js");
+
+const isSignedIn = require("./middleware/is-signed-in.js");
+const passUserToView = require("./middleware/pass-user-to-view.js");
+const { reasons404 } = require("./public/js/serverUtils.js");
+
+const port = process.env.PORT || 3000;
+
+// ----------------------- PASSPORT CONFIG -----------------------
 passport.serializeUser((user, done) => done(null, user._id));
 
-// Deserialize
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id);
@@ -33,16 +33,15 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Local strategy (username field = email? adjust if you use username)
 passport.use(
   new LocalStrategy(
-    { usernameField: "username" }, // <-- change to "email" if you login with email
+    { usernameField: "username" }, // change to "email" if you login with email
     async (username, password, done) => {
       try {
         const user = await User.findOne({ username });
         if (!user) return done(null, false);
-        const ok = bcrypt.compareSync(password, user.password);
-        return ok ? done(null, user) : done(null, false);
+        const valid = await bcrypt.compare(password, user.password);
+        return valid ? done(null, user) : done(null, false);
       } catch (err) {
         return done(err);
       }
@@ -50,83 +49,94 @@ passport.use(
   )
 );
 
+// ----------------------- MONGOOSE -----------------------
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB budgeo.');
-  })
+  .then(() => console.log("Connected to MongoDB budgeo."))
   .catch(err => {
-    console.error('MongoDB connection error:', err.message);
-    // DO NOT CRASH — keep app running
-    console.log('App will run in offline mode (no DB)');
+    console.error("MongoDB connection error:", err.message);
+    console.log("App running in offline mode (no DB)");
   });
 
-mongoose.connection.on('connected', () => {
-  console.log(`Connected to MongoDB ${mongoose.connection.name}.`);
+mongoose.connection.on("connected", () => {
+  console.log(`MongoDB connected: ${ mongoose.connection.name }`);
 });
 
-app.use(express.static('public'));
-app.use(express.json())
+// ----------------------- MIDDLEWARE -----------------------
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride('_method'));
+app.use(methodOverride("_method"));
+
 app.use(
   session({
-    secret:
-      process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false, // Changed to false for security
+    saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
       collectionName: "sessions",
-      ttl: 60 * 60, // 1 day TTL
-      autoRemove: "native", // Use MongoDB TTL index
+      ttl: 24 * 60 * 60, // 1 day
+      autoRemove: "native",
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      httpOnly: true, // Prevent XSS attacks
-      maxAge: 60 * 60 * 1000, // 1 day in milliseconds
-      sameSite: "lax", // CSRF protection
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: "lax",
     },
-    name: "budgeo.sid", // Custom session cookie name
+    name: "budgeo.sid",
   })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(passUserToView); // makes req.user → res.locals.user
 
-app.use(passUserToView);
+// ----------------------- ROUTES -----------------------
 
-
-app.get("/", (req, res) => {
-    res.redirect("/budgeo");
-});
+// Home
+app.get("/", (req, res) => res.redirect("/budgeo"));
 
 app.get("/budgeo", (req, res) => {
-  const path = req.path;
-  if (req.session.user) {
-    res.redirect(`/budgeo/${req.session.user.username}/expenses`);
-  } else {
-    res.render("index.ejs", { path });
+  if (req.user) {
+    return res.redirect(`/budgeo/${ req.user.username }/expenses`);
   }
+  res.render("index.ejs", { path: req.path });
 });
 
+// AUTH ROUTES (public)
 app.use("/budgeo/auth", authController);
 
+// PROTECTED ROUTES (must be signed in)
 app.use(isSignedIn);
 
+// DASHBOARD (protected)
+app.get("/budgeo/:username/expenses", (req, res) => {
+  if (req.user.username !== req.params.username) {
+    return res.redirect("/budgeo");
+  }
+  res.render("expenses", { user: req.user });
+});
+
+// OTHER BUDGEO ROUTES (expenses CRUD, etc.)
 app.use("/budgeo", budgeoController);
 
-// catch all for 404
-app.use('/*splat', (req, res) => {
-  const reason = reasons404[Math.floor(Math.random()*10)];
-  const statusCode = 404 
-  res.render('status.ejs', { reason, statusCode })
-})
+// 404
+app.use((req, res) => {
+  const reason = reasons404[ Math.floor(Math.random() * reasons404.length) ];
+  res.status(404).render("status", { statusCode: 404, reason });
+});
 
+// ERROR HANDLER
 app.use((err, req, res, next) => {
-  console.log(err)
-  res.render('status.ejs', { statusCode: err.statusCode, reason: err.reason })
-})
+  console.error(err);
+  const statusCode = err.statusCode || 500;
+  const reason = err.reason || "Something went wrong";
+  res.status(statusCode).render("status", { statusCode, reason });
+});
 
+// ----------------------- START SERVER -----------------------
 app.listen(port, () => {
-  console.log(`The express app is ready on port ${port}!`);
+  console.log(`The express app is ready on port ${ port }!`);
 });
