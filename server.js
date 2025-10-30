@@ -26,6 +26,7 @@ passport.serializeUser((user, done) => done(null, user._id));
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id);
+    console.log("Deserialized user:", user ? user.username : "none");
     done(null, user);
   } catch (err) {
     done(err);
@@ -63,7 +64,7 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
-
+app.set("trust proxy", 1);
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
