@@ -197,6 +197,9 @@ async function getUserData(User, req, type) {
   } else {
     expense = currentUser.budget;
   }
+  if (!expense) {
+    expense = []
+  }
   return { username, expense, currency, path, currentUser };
 }
 
