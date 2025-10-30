@@ -9,7 +9,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const bcrypt = require("bcrypt"); // <-- YOU NEED THIS
+const bcrypt = require("bcrypt");
 
 const User = require("./models/user");
 const authController = require("./controllers/auth.js");
@@ -21,9 +21,8 @@ const { reasons404 } = require("./public/js/serverUtils.js");
 
 const port = process.env.PORT || 3000;
 
-// ----------------------- PASSPORT CONFIG -----------------------
+// ----------------------- PASSPORT -----------------------
 passport.serializeUser((user, done) => done(null, user._id));
-
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id);
@@ -32,22 +31,19 @@ passport.deserializeUser(async (id, done) => {
     done(err);
   }
 });
-
-passport.use(
-  new LocalStrategy(
-    { usernameField: "username" }, // change to "email" if you login with email
-    async (username, password, done) => {
-      try {
-        const user = await User.findOne({ username });
-        if (!user) return done(null, false);
-        const valid = await bcrypt.compare(password, user.password);
-        return valid ? done(null, user) : done(null, false);
-      } catch (err) {
-        return done(err);
-      }
+passport.use(new LocalStrategy(
+  { usernameField: "username" },
+  async (username, password, done) => {
+    try {
+      const user = await User.findOne({ username });
+      if (!user) return done(null, false);
+      const valid = await bcrypt.compare(password, user.password);
+      return valid ? done(null, user) : done(null, false);
+    } catch (err) {
+      return done(err);
     }
-  )
-);
+  }
+));
 
 // ----------------------- MONGOOSE -----------------------
 mongoose.connect(process.env.MONGODB_URI)
@@ -68,34 +64,30 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
-      collectionName: "sessions",
-      ttl: 24 * 60 * 60, // 1 day
-      autoRemove: "native",
-    }),
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: "lax",
-    },
-    name: "budgeo.sid",
-  })
-);
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: "sessions",
+    ttl: 24 * 60 * 60,
+    autoRemove: "native",
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: "lax",
+  },
+  name: "budgeo.sid",
+}));
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(passUserToView); // makes req.user → res.locals.user
+app.use(passUserToView);
 
 // ----------------------- ROUTES -----------------------
-
-// Home
 app.get("/", (req, res) => res.redirect("/budgeo"));
 
 app.get("/budgeo", (req, res) => {
@@ -105,21 +97,10 @@ app.get("/budgeo", (req, res) => {
   res.render("index.ejs", { path: req.path });
 });
 
-// AUTH ROUTES (public)
 app.use("/budgeo/auth", authController);
+app.use(isSignedIn); // ← PROTECT ALL BELOW
 
-// PROTECTED ROUTES (must be signed in)
-app.use(isSignedIn);
-
-// DASHBOARD (protected)
-app.get("/budgeo/:username/expenses", (req, res) => {
-  if (req.user.username !== req.params.username) {
-    return res.redirect("/budgeo");
-  }
-  res.render("expenses", { user: req.user });
-});
-
-// OTHER BUDGEO ROUTES (expenses CRUD, etc.)
+// BUDGEO ROUTES (CRUD, dashboard, data, etc.)
 app.use("/budgeo", budgeoController);
 
 // 404
@@ -128,7 +109,7 @@ app.use((req, res) => {
   res.status(404).render("status", { statusCode: 404, reason });
 });
 
-// ERROR HANDLER
+// ERROR
 app.use((err, req, res, next) => {
   console.error(err);
   const statusCode = err.statusCode || 500;
@@ -136,7 +117,6 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("status", { statusCode, reason });
 });
 
-// ----------------------- START SERVER -----------------------
 app.listen(port, () => {
   console.log(`The express app is ready on port ${ port }!`);
 });
