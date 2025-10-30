@@ -89,12 +89,14 @@ app.use(passport.session());
 app.use(passUserToView);
 
 // ----------------------- ROUTES -----------------------
-app.get("/", (req, res) => res.redirect("/budgeo"));
-
-app.get("/budgeo", (req, res) => {
+app.get("/", (req, res) => {
   if (req.user) {
     return res.redirect(`/budgeo/${ req.user.username }/expenses`);
   }
+  res.render("index.ejs", { path: req.path });
+});
+
+app.get("/budgeo", (req, res) => {
   res.render("index.ejs", { path: req.path });
 });
 

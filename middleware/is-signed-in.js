@@ -7,7 +7,7 @@ const {
 const isSignedIn = (req, res, next) => {
   // Check if session exists and user is logged in
 
-  if (!req.session || !req.session.user || !req.session.user._id) {
+  if (!req.session || !req.session.user || !req.session.user._id || !req.user) {
     return res.redirect("/");
   }
 
