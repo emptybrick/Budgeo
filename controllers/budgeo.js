@@ -32,7 +32,7 @@ router.get("/:username/expenses", async (req, res, next) => {
 router.get("/:username/expenses/new", async (req, res, next) => {
   try {
     const { currency, path, username } = await getUserData(User, req);
-    res.render("budgeo/new.ejs", { path, currency, username, user: username });
+    res.render("budgeo/new.ejs", { expense, path, currency, username, user: username });
   } catch (err) {
     console.error("New expense form error:", err);
     return next({ statusCode: 500, reason: "UNABLE TO LOAD NEW EXPENSE FORM!" });
