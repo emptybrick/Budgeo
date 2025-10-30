@@ -8,7 +8,7 @@ const isSignedIn = (req, res, next) => {
   // Check if session exists and user is logged in
 
   if (!req.session || !req.session.user || !req.session.user._id || !req.user) {
-    return res.redirect("/");
+    return res.redirect("/budgeo/auth/sign-in");
   }
 
   // Validate session (check if it's not expired)
