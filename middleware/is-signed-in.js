@@ -1,33 +1,25 @@
-const {
-  isSessionValid,
-  refreshSession,
-} = require("../public/js/sessionhelper.js");
+// middleware/is-signed-in.js
+const { isSessionValid, refreshSession } = require("../public/js/sessionhelper.js");
 
-//check if user is signed in with enhanced session validation
 const isSignedIn = (req, res, next) => {
-  // Check if session exists and user is logged in
-
-  if (!req.session || !req.session.user || !req.session.user._id || !req.user) {
+  // Passport already attaches req.user when authenticated
+  if (!req.user) {
     return res.redirect("/budgeo/auth/sign-in");
   }
 
-  // Validate session (check if it's not expired)
+  // Optional: validate session age
   if (!isSessionValid(req.session)) {
-    // Session is invalid, destroy it and redirect to login
-    req.session.destroy((err) => {
-      if (err) {
-        console.log("Session destruction error:", err);
-      }
+    req.session.destroy(err => {
+      if (err) console.log("Session destruction error:", err);
       res.clearCookie("budgeo.sid");
       return res.redirect("/budgeo/auth/sign-in?signedOut=true");
     });
+    return;
   }
-  // Refresh session activity timestamp
-  refreshSession(req, (err) => {
-    if (err) {
-      console.log("Session refresh error:", err);
-      // Continue anyway, don't block the request
-    }
+
+  // Optional: refresh session timestamp
+  refreshSession(req, err => {
+    if (err) console.log("Session refresh error:", err);
     next();
   });
 };

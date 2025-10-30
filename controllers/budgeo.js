@@ -16,21 +16,6 @@ const parseCurrency = require("parsecurrency");
 // ──────────────────────────────────────────────────────────────
 // GET /:username/expenses → Main Dashboard
 // ──────────────────────────────────────────────────────────────
-router.use("/:username", (req, res, next) => {
-  if (!req.user) return res.redirect("/budgeo/auth/sign-in");
-
-  // normalize case just in case (MongoDB usernames often are case-sensitive)
-  const loggedInUser = req.user.username.toLowerCase();
-  const routeUser = req.params.username.toLowerCase();
-
-  if (loggedInUser !== routeUser) {
-    console.warn(`Username mismatch: ${ loggedInUser } vs ${ routeUser }`);
-    return res.redirect(`/budgeo/${ req.user.username }/expenses`);
-  }
-
-  next();
-});
-
 router.get("/:username/expenses", async (req, res, next) => {
   try {
     const { username, expense: expenses, currency, path } = await getUserData(User, req);
