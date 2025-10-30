@@ -46,12 +46,12 @@ router.get("/:username/data", async (req, res, next) => {
   try {
     const { username, expense, currency, path } = await getUserData(User, req);
 
-    const pieData = await pieChart(expenses);
+    const pieData = await pieChart(expense);
     const scheduleData = {
-      weekly: getSchedulesFormatted(expenses, "Weekly", currency),
-      monthly: getSchedulesFormatted(expenses, "Monthly", currency),
-      quarterly: getSchedulesFormatted(expenses, "Quarterly", currency),
-      annually: getSchedulesFormatted(expenses, "Annually", currency),
+      weekly: getSchedulesFormatted(expense, "Weekly", currency),
+      monthly: getSchedulesFormatted(expense, "Monthly", currency),
+      quarterly: getSchedulesFormatted(expense, "Quarterly", currency),
+      annually: getSchedulesFormatted(expense, "Annually", currency),
     };
 
     res.render("budgeo/data.ejs", {
