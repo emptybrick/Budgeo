@@ -16,7 +16,15 @@ const { reasons404 } = require('./public/js/serverUtils.js');
 
 const port = process.env.PORT ? process.env.PORT : '3000';
 
-mongoose.connect(process.env.MONGODB_URI);
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB budgeo.');
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err.message);
+    // DO NOT CRASH — keep app running
+    console.log('App will run in offline mode (no DB)');
+  });
 
 mongoose.connection.on('connected', () => {
   console.log(`Connected to MongoDB ${mongoose.connection.name}.`);
