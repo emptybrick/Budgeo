@@ -16,6 +16,40 @@ const { reasons404 } = require('./public/js/serverUtils.js');
 
 const port = process.env.PORT ? process.env.PORT : '3000';
 
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const User = require("./models/user");
+
+// Serialize
+passport.serializeUser((user, done) => done(null, user._id));
+
+// Deserialize
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
+});
+
+// Local strategy (username field = email? adjust if you use username)
+passport.use(
+  new LocalStrategy(
+    { usernameField: "username" }, // <-- change to "email" if you login with email
+    async (username, password, done) => {
+      try {
+        const user = await User.findOne({ username });
+        if (!user) return done(null, false);
+        const ok = bcrypt.compareSync(password, user.password);
+        return ok ? done(null, user) : done(null, false);
+      } catch (err) {
+        return done(err);
+      }
+    }
+  )
+);
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB budgeo.');
@@ -56,7 +90,11 @@ app.use(
   })
 );
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(passUserToView);
+
 
 app.get("/", (req, res) => {
     res.redirect("/budgeo");

@@ -1,155 +1,92 @@
+// routes/auth.js
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const { currencies } = require("../public/js/serverUtils.js");
 const User = require("../models/user.js");
 const _ = require("lodash");
+const passport = require("passport");          // <-- add this
 
+/* -------------------------------------------------
+   GET /budgeo/auth/sign-in
+   ------------------------------------------------- */
 router.get("/sign-in", (req, res) => {
-  // If user is already signed in, redirect to home
-  try {
-    const path = req.path;
-    if (req.session.user) {
-      return res.redirect(`/budgeo/${req.session.user.username}/expenses`);
-    }
-    res.render("auth/sign-in.ejs", {
-      path,
-      showMessage: false,
-      newUser: req.query.newUser || false,
-      signedOut: req.query.signedOut || false,
-      user: req.user || null,
-    });
-  } catch (e) {
-    console.log(e);
-    const err = {
-      statusCode: 500,
-      reason: "CANNOT LOCATE THE SIGN-IN PAGE!",
-    };
-    return next(err);
-  }
+  if (req.user) return res.redirect(`/budgeo/${ req.user.username }/expenses`);
+
+  res.render("auth/sign-in.ejs", {
+    path: req.path,
+    showMessage: false,
+    newUser: req.query.newUser || false,
+    signedOut: req.query.signedOut || false,
+    user: null,
+  });
 });
 
-router.post("/sign-in", async (req, res, next) => {
-  try {
-    // checks for user and if none renders message
-    const userInDatabase = await User.findOne({ username: req.body.username });
-    if (!userInDatabase) {
-      return res.render("auth/sign-in.ejs", {
-        path: req.path,
-        showMessage: true,
-        newUser: req.query.newUser || false,
-        signedOut: false,
-      });
-    }
-
-    // checks password using bcrypt compare and if invalid renders message
-    const validPassword = bcrypt.compareSync(
-      req.body.password,
-      userInDatabase.password
-    );
-    if (!validPassword) {
-      return res.render("auth/sign-in.ejs", {
-        path: req.path,
-        showMessage: true,
-        newUser: req.query.newUser || false,
-        signedOut: false,
-      });
-    }
-
-    // Regenerate session to prevent session fixation attacks
-    req.session.regenerate((err) => {
-      if (err) {
-        console.log("Session regeneration error:", err);
-        const err = {
-          statusCode: 500,
-          reason: "AUTHENTICATION ERROR",
-        };
-        return next(err);
-      }
-
-      // There is a user AND they had the correct password. Time to make a session!
-      req.session.user = {
-        username: userInDatabase.username,
-        _id: userInDatabase._id,
-        loginTime: new Date().toISOString(),
-      };
-
-      // Save session explicitly
-      req.session.save((err) => {
-        if (err) {
-          console.log("Session save error:", err);
-          const err = {
-            statusCode: 500,
-            reason: "AUTHENTICATION ERROR",
-          };
-          return next(err);
-        }
-        res.redirect(`/budgeo/${req.session.user.username}/expenses`);
-      });
-    });
-  } catch (e) {
-    console.log("Cannot sign in", e);
-    const err = {
-      statusCode: 500,
-      reason: "CANNOT SIGN USER IN",
-    };
-    return next(err);
+/* -------------------------------------------------
+   POST /budgeo/auth/sign-in  (Passport local)
+   ------------------------------------------------- */
+router.post(
+  "/sign-in",
+  passport.authenticate("local", {
+    failureRedirect: "/budgeo/auth/sign-in",
+    failureFlash: true,
+  }),
+  (req, res) => {
+    // success → go straight to the user’s dashboard
+    res.redirect(`/budgeo/${ req.user.username }/expenses`);
   }
-});
+);
 
+/* -------------------------------------------------
+   GET /budgeo/auth/sign-up
+   ------------------------------------------------- */
 router.get("/sign-up", (req, res) => {
-  try {
-    const path = req.path;
-    res.render("auth/sign-up.ejs", {
-      currencies,
-      path,
-      failedUser: false,
-      failedPassword: false,
-      failedCurrency: false,
-      failedSpecialChar: false,
-      user: req.user || null,
-    });
-  } catch (e) {
-    console.log(e);
-    const err = {
-      statusCode: 500,
-      reason: "CANNOT LOCATE THE SIGN-UP PAGE!",
-    };
-    return next(err);
-  }
+  res.render("auth/sign-up.ejs", {
+    currencies,
+    path: req.path,
+    failedUser: false,
+    failedPassword: false,
+    failedCurrency: false,
+    failedSpecialChar: false,
+    user: null,
+  });
 });
 
+/* -------------------------------------------------
+   POST /budgeo/auth/sign-up
+   ------------------------------------------------- */
 router.post("/sign-up", async (req, res, next) => {
   try {
-    // validate no special characters in username except _
-    const regex = /^[a-zA-Z0-9_]{3,15}$/;
-    if (!regex.test(req.body.username)) {
+    // ---- 1. username validation ---------------------------------
+    const usernameRegex = /^[a-zA-Z0-9_]{3,15}$/;
+    if (!usernameRegex.test(req.body.username)) {
       return res.render("auth/sign-up.ejs", {
         currencies,
         path: req.path,
+        failedSpecialChar: true,
         failedUser: false,
         failedPassword: false,
         failedCurrency: false,
-        failedSpecialChar: true,
-        user: req.user || null,
+        user: null,
       });
     }
-    // validating password
+
+    // ---- 2. password match ---------------------------------------
     if (req.body.password !== req.body.confirmPassword) {
       return res.render("auth/sign-up.ejs", {
         currencies,
         path: req.path,
-        failedUser: false,
         failedPassword: true,
+        failedUser: false,
         failedCurrency: false,
         failedSpecialChar: false,
-        user: req.user || null,
+        user: null,
       });
     }
 
-    // validating unique user
-    const userInDatabase = await User.findOne({ username: req.body.username });
-    if (userInDatabase) {
+    // ---- 3. unique username --------------------------------------
+    const existing = await User.findOne({ username: req.body.username });
+    if (existing) {
       return res.render("auth/sign-up.ejs", {
         currencies,
         path: req.path,
@@ -157,71 +94,56 @@ router.post("/sign-up", async (req, res, next) => {
         failedPassword: false,
         failedCurrency: false,
         failedSpecialChar: false,
-        user: req.user || null,
+        user: null,
       });
     }
 
-    // validating currency option selected matches valid options
-    // using lodash for the isEqual deep comparison method for 2 objects
-    // i could of used JSON stringify, but I wanted a bit more robust check incase
-    // the data was correct but in a different order
-    const parsedReqCurrency = JSON.parse(req.body.currency);
-    const currencySelected = currencies.find(
-      (currency) => currency.code === parsedReqCurrency.code
-    );
-    const currencyCheck = _.isEqual(currencySelected, parsedReqCurrency);
-    if (req.body.currency.length < 1 || !currencyCheck) {
+    // ---- 4. currency validation ----------------------------------
+    const parsedCurrency = JSON.parse(req.body.currency);
+    const currencyMatch = currencies.find((c) => c.code === parsedCurrency.code);
+    if (!currencyMatch || !_.isEqual(currencyMatch, parsedCurrency)) {
       return res.render("auth/sign-up.ejs", {
         currencies,
         path: req.path,
-        failedPassword: false,
-        failedUser: false,
         failedCurrency: true,
+        failedUser: false,
+        failedPassword: false,
         failedSpecialChar: false,
-        user: req.user || null,
+        user: null,
       });
     }
 
-    const hashedPassword = bcrypt.hashSync(req.body.password, 10);
-    req.body.password = hashedPassword;
+    // ---- 5. create user -------------------------------------------
+    const hashed = bcrypt.hashSync(req.body.password, 10);
+    const newUser = new User({
+      username: req.body.username,
+      email: req.body.email,
+      password: hashed,
+      currency: parsedCurrency,
+    });
+    await newUser.save();
 
-    const currency = JSON.parse(req.body.currency);
-    req.body.currency = currency;
-
-    await User.create(req.body);
-    res.redirect("/budgeo/auth/sign-in?newUser=true");
+    // ---- 6. **AUTO-LOGIN** with Passport -------------------------
+    req.login(newUser, (err) => {
+      if (err) return next(err);
+      return res.redirect(`/budgeo/${ newUser.username }/expenses`);
+    });
   } catch (e) {
-    console.log("Cannot sign up", e);
-    const err = {
-      statusCode: 500,
-      reason: "CANNOT SIGN USER UP",
-    };
-    return next(err);
+    console.error("Sign-up error:", e);
+    next({ statusCode: 500, reason: "CANNOT SIGN USER UP" });
   }
 });
 
+/* -------------------------------------------------
+   GET /budgeo/auth/sign-out
+   ------------------------------------------------- */
 router.get("/sign-out", (req, res) => {
-  // Destroy session and clear cookie
-  try {
-    req.session.destroy((error) => {
-      if (error) {
-        console.log("Session destruction error:", error);
-        const err = {
-          statusCode: 500,
-          reason: `USER SIGN OUT FAILED.`,
-        };
-        next({ err });
-      }
-      res.clearCookie("budgeo.sid"); // Clear the session cookie
+  req.logout(() => {
+    req.session.destroy(() => {
+      res.clearCookie("budgeo.sid");
       res.redirect("/budgeo/auth/sign-in?signedOut=true");
     });
-  } catch (e) {
-    const err = {
-      statusCode: 500,
-      reason: `USER SIGN OUT FAILED.`,
-    };
-    next({ err });
-  }
+  });
 });
 
 module.exports = router;
