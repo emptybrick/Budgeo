@@ -19,7 +19,7 @@ const parseCurrency = require("parsecurrency");
 router.get("/:username/expenses", async (req, res, next) => {
   try {
     const { username, expense: expenses, currency, path } = await getUserData(User, req);
-    res.render("budgeo/index.ejs", { expenses, path, username, currency });
+    res.render("budgeo/index.ejs", { expenses, path, username, currency, user: currentUser });
   } catch (err) {
     console.error("Expenses page error:", err);
     return next({ statusCode: 500, reason: "UNABLE TO ACCESS EXPENSES!" });
