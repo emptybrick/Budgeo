@@ -82,45 +82,6 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="/js/clientUtils.js"></script>
-    <script>
-      const chartElement = document.getElementById("pie-chart");
-      if (chartElement) {
-        new Chart(chartElement, {
-          type: "pie",
-          data: {
-            labels: pieData.map((piece) => piece.label),
-            datasets: [
-              {
-                data: pieData.map((piece) => piece.value),
-                backgroundColor: pieData.map((piece) => piece.color),
-                hoverOffset: 4,
-              },
-            ],
-          },
-          options: {
-            locale: currency.locale,
-            plugins: {
-              legend: {
-                title: {
-                  display: true,
-                  text: "MONTHLY COST BY CATEGORY",
-                  font: {
-                    size: 20,
-                  },
-                },
-                labels: {
-                  boxWidth: 20,
-                  boxHeight: 20,
-                  font: {
-                    size: 14,
-                  },
-                },
-              },
-            },
-          },
-        });
-      }
-    </script>
 </body>
 
 </html>

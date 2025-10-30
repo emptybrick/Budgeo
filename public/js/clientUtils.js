@@ -339,7 +339,7 @@ function addErrorMessageListeners(row) {
 
 // updates elements innerHTML for data.ejs estimates
 // basic switch statements handling which text shows
-function changeSchedule(type) {
+function changeSchedule (type) {
   const totalCosts = document.querySelector("#total-cost");
   const estimatedCosts = document.querySelector("#estimate-cost");
   let message = "";
@@ -351,44 +351,23 @@ function changeSchedule(type) {
   if (!totalCosts || !estimatedCosts) {
     return;
   }
-  switch (type) {
-    case "Weekly":
-      formattedTotal = scheduleData.weeklyTotal;
-      formattedHigh = scheduleData.weeklyHigh;
-      formattedLow = scheduleData.weeklyLow;
-      break;
-    case "Monthly":
-      formattedTotal = scheduleData.monthlyTotal;
-      formattedHigh = scheduleData.monthlyHigh;
-      formattedLow = scheduleData.monthlyLow;
-      break;
-    case "Quarterly":
-      formattedTotal = scheduleData.quarterlyTotal;
-      formattedHigh = scheduleData.quarterlyHigh;
-      formattedLow = scheduleData.quarterlyLow;
-      break;
-    case "Annually":
-      formattedTotal = scheduleData.annuallyTotal;
-      formattedHigh = scheduleData.annuallyHigh;
-      formattedLow = scheduleData.annuallyLow;
-      break;
-  }
 
-  switch (type) {
-    case "Weekly":
-      message = `<span class="has-text-weight-bold">Weekly Estimate: </span> ${formattedTotal}`;
-      break;
-    case "Monthly":
-      message = `<span class="has-text-weight-bold">Monthly Estimate: </span> ${formattedTotal}`;
-      break;
-    case "Quarterly":
-      message = `<span class="has-text-weight-bold">Quarterly Estimate: </span> ${formattedTotal}`;
-      break;
-    case "Annually":
-      message = `<span class="has-text-weight-bold">Annual Estimate: </span> ${formattedTotal}`;
-      break;
-  }
-  confidenceMessage = `<span class="has-text-weight-bold">Confidence Estimate: </span> ${formattedLow} to ${formattedHigh}`;
+  // WRONG: scheduleData.weeklyTotal → undefined
+  // CORRECT: scheduleData[type.toLowerCase()]
+  const data = window.scheduleData?.[ type.toLowerCase() ];
+  if (!data) return;
+
+  formattedTotal = data.formattedTotal;
+  formattedHigh = data.formattedHigh;
+  formattedLow = data.formattedLow;
+
+  message = `<span class="has-text-weight-bold">${ type } Estimate: </span> ${ formattedTotal }`;
+
+  const hasCI = formattedHigh !== formattedTotal || formattedLow !== formattedTotal;
+  confidenceMessage = hasCI
+    ? `<span class="has-text-weight-bold">95% Confidence: </span> ${ formattedLow } – ${ formattedHigh }`
+    : '';
+
   totalCosts.innerHTML = message;
   estimatedCosts.innerHTML = confidenceMessage;
 }
@@ -478,7 +457,54 @@ if (initialForm) {
   });
 }
 
+function renderPieChart () {
+  const chartElement = document.getElementById("pie-chart");
+  if (!chartElement || !window.pieData) return;
+
+  new Chart(chartElement, {
+    type: "pie",
+    data: {
+      labels: window.pieData.map(p => p.label),
+      datasets: [ {
+        data: window.pieData.map(p => p.value),
+        backgroundColor: window.pieData.map(p => p.color),
+        hoverOffset: 4,
+      } ],
+    },
+    options: {
+      locale: window.currency?.locale || 'en-US',
+      plugins: {
+        legend: {
+          title: {
+            display: true,
+            text: "MONTHLY COST BY CATEGORY",
+            font: { size: 20 },
+          },
+          labels: {
+            boxWidth: 20,
+            boxHeight: 20,
+            font: { size: 14 },
+          },
+        },
+      },
+    },
+  });
+}
+
 // ---------------- RUN ON DOM LOAD ------------------ //
-updatePlaceholders(); // formats cost input fields to show as client locale
-updateErrorMessages(); // changes validity messages to custum ones
-changeSchedule("Monthly"); // sets initial values for estimate field in data/charts ejs to monthly
+document.addEventListener("DOMContentLoaded", () => {
+  updatePlaceholders();
+  updateErrorMessages();
+
+  // Wait for data to be injected
+  function initData () {
+    if (window.scheduleData && window.pieData && window.currency) {
+      changeSchedule("Monthly"); 
+      renderPieChart();     
+    } else {
+      setTimeout(initData, 50);
+    }
+  }
+
+  initData();
+});
