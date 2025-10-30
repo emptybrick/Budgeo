@@ -183,21 +183,34 @@ const reasons404Expenses = [
 ];
 
 // gets user data for server
-async function getUserData(User, req, type) {
-  const currentUser = await User.findById(req.user._id);
+async function getUserData (User, req, type) {
+  const currentUser = await User.findById(req.user._id).lean(); // <-- ADD .lean()
   if (!currentUser) {
     throw new Error("User not Found");
   }
-  console.log(currentUser)
+
   const username = currentUser.username;
-  const currency = currentUser.currency;
+  const currency = currentUser.currency || { code: "USD", locale: "en-US" };
   const path = req.path;
   let expense;
+
   if (type === "getId") {
-    expense = currentUser.budget.id(req.params.expenseId);
+    const expenseDoc = currentUser.budget.id(req.params.expenseId);
+    expense = expenseDoc ? [ expenseDoc ] : []; // ← Always return array
   } else {
-    expense = currentUser.budget;
+    expense = Array.isArray(currentUser.budget) ? currentUser.budget : [];
   }
+
+  // Ensure every expense has required fields
+  expense = expense.map(exp => ({
+    ...exp,
+    cost: Number(exp.cost) || 0,
+    costHigh: Number(exp.costHigh) || 0,
+    costLow: Number(exp.costLow) || 0,
+    schedule: exp.schedule || "Monthly",
+    type: exp.type || "Other"
+  }));
+
   return { username, expense, currency, path, currentUser };
 }
 

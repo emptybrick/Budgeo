@@ -54,6 +54,9 @@ router.get("/:username/data", async (req, res, next) => {
       annually: getSchedulesFormatted(expense, "Annually", currency),
     };
 
+    console.log(pieData)
+    console.log(scheduleData)
+
     res.render("budgeo/data.ejs", {
       expense,
       path,
