@@ -44,7 +44,7 @@ router.get("/:username/expenses/new", async (req, res, next) => {
 // ──────────────────────────────────────────────────────────────
 router.get("/:username/data", async (req, res, next) => {
   try {
-    const { username, expense: expenses, currency, path } = await getUserData(User, req);
+    const { username, expense, currency, path } = await getUserData(User, req);
 
     const pieData = await pieChart(expenses);
     const scheduleData = {
