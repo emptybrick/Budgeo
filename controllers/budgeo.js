@@ -32,7 +32,7 @@ router.get("/:username/expenses", async (req, res, next) => {
 router.get("/:username/expenses/new", async (req, res, next) => {
   try {
     const { expense: _, currency, path, username } = await getUserData(User, req);
-    res.render("budgeo/new.ejs", { path, currency, username });
+    res.render("budgeo/new.ejs", { path, currency, username, user: username });
   } catch (err) {
     console.error("New expense form error:", err);
     return next({ statusCode: 500, reason: "UNABLE TO LOAD NEW EXPENSE FORM!" });
@@ -61,6 +61,7 @@ router.get("/:username/data", async (req, res, next) => {
       scheduleData,
       username,
       currency,
+      user: username
     });
   } catch (err) {
     console.error("Data page error:", err);
@@ -131,7 +132,7 @@ router.get("/:username/expenses/:expenseId/edit", async (req, res, next) => {
       const reason = reasons404Expenses[ Math.floor(Math.random() * reasons404Expenses.length) ];
       return next({ statusCode: 404, reason });
     }
-    res.render("budgeo/edit.ejs", { expense, currency, path, username });
+    res.render("budgeo/edit.ejs", { expense, currency, path, username, user: username });
   } catch (err) {
     console.error("Edit form error:", err);
     return next({ statusCode: 500, reason: "FAILED TO LOAD EDIT FORM!" });
@@ -148,7 +149,7 @@ router.get("/:username/expenses/:expenseId", async (req, res, next) => {
       const reason = reasons404Expenses[ Math.floor(Math.random() * reasons404Expenses.length) ];
       return next({ statusCode: 404, reason });
     }
-    res.render("budgeo/show.ejs", { expense, path, currency, username });
+    res.render("budgeo/show.ejs", { expense, path, currency, username, user: username });
   } catch (err) {
     console.error("Show expense error:", err);
     return next({ statusCode: 500, reason: "FAILED TO LOAD EXPENSE DETAILS!" });
@@ -236,7 +237,7 @@ router.delete("/accountdeletion", async (req, res, next) => {
     req.logout(() => {
       req.session.destroy(() => {
         res.clearCookie("budgeo.sid");
-        res.render("thankyou.ejs", { username: req.user.username });
+        res.render("thankyou.ejs", { username: req.user.username, user: req.user.username });
       });
     });
   } catch (err) {
