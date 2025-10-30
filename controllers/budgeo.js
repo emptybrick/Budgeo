@@ -31,7 +31,7 @@ router.get("/:username/expenses", async (req, res, next) => {
 // ──────────────────────────────────────────────────────────────
 router.get("/:username/expenses/new", async (req, res, next) => {
   try {
-    const { expense: _, currency, path, username } = await getUserData(User, req);
+    const { currency, path, username } = await getUserData(User, req);
     res.render("budgeo/new.ejs", { path, currency, username, user: username });
   } catch (err) {
     console.error("New expense form error:", err);
@@ -55,7 +55,7 @@ router.get("/:username/data", async (req, res, next) => {
     };
 
     res.render("budgeo/data.ejs", {
-      expenses,
+      expense,
       path,
       pieData,
       scheduleData,
