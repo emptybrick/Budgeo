@@ -184,7 +184,7 @@ const reasons404Expenses = [
 
 // gets user data for server
 async function getUserData (User, req, type) {
-  const currentUser = await User.findById(req.user._id).lean(); // <-- ADD .lean()
+  const currentUser = await User.findById(req.user._id);
   if (!currentUser) {
     throw new Error("User not Found");
   }
