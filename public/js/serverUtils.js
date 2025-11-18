@@ -195,21 +195,10 @@ async function getUserData (User, req, type) {
   let expense;
 
   if (type === "getId") {
-    const expenseDoc = currentUser.budget.id(req.params.expenseId);
-    expense = expenseDoc ? [ expenseDoc ] : []; // ← Always return array
+    expense = currentUser.budget.id(req.params.expenseId);
   } else {
-    expense = Array.isArray(currentUser.budget) ? currentUser.budget : [];
+    expense = currentUser.budget;
   }
-
-  // Ensure every expense has required fields
-  expense = expense.map(exp => ({
-    ...exp,
-    cost: Number(exp.cost) || 0,
-    costHigh: Number(exp.costHigh) || 0,
-    costLow: Number(exp.costLow) || 0,
-    schedule: exp.schedule || "Monthly",
-    type: exp.type || "Other"
-  }));
 
   return { username, expense, currency, path, currentUser };
 }
